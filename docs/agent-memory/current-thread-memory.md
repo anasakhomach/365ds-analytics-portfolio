@@ -100,6 +100,10 @@ Imported from `C:\Users\Nitro\aicvgen\.tmp\agent-skills\skills`:
 - Review the User Journey Streamlit dashboard locally and use the generated report for quiz/supporting answers.
 - Pick the next project after User Journey; likely move to a SQL dump project using DuckDB ingestion first, and MySQL CLI only when dump compatibility requires it.
 
+## Deferred Missions
+
+- After completing the remaining 365DS projects, standardize existing project pipelines toward the preferred warehouse pattern: Python orchestrates; SQL files define Bronze/Silver/Gold tables where transformations are relational; Python remains for project-required APIs, pandas-specific learning objectives, or list/session algorithms that are clearer outside SQL.
+
 ## Recent Delta
 
 - 2026-06-17: Added repo-local agent skill package and starter memory artifacts; expanded it with adapted analytics SQL, dashboard storytelling, and data quality contract skills from the requested GitHub sources; fixed hidden `.agents`/`.codex` usability via junctions; added starter Python requirements files for analytics and LangChain work; committed the baseline and DuckDB/Streamlit stack; completed Real Estate and User Journey as DuckDB/Streamlit projects.
