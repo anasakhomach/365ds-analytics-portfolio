@@ -27,3 +27,17 @@
 - Direct ACL edits and `icacls /remove:d` did not make the normal sandbox write path reliable.
 - The durable local fix was to preserve the old hidden roots under `C:\tmp`, then replace `.agents` and `.codex` with junction roots into `agent-hidden-roots/`.
 - `.agents/skills` and `.codex/skills` now both point to `agent-skills/`, keeping one canonical visible skill package while making hidden skill paths usable.
+
+## M4 - DuckDB Streamlit Project Pattern Established
+
+- The analytics stack was set to DuckDB plus Streamlit, with `.venv-365ds` as the project environment.
+- Real Estate Market Analysis became the first completed project, proving the Bronze/Silver/Gold pattern on CSV sources.
+- User Journey Analysis became the second completed project, keeping the required Python journey functions while exposing reusable DuckDB Gold marts and a Streamlit dashboard.
+- A deferred mission was recorded: after the remaining projects are complete, standardize relational transformations so Python orchestrates and SQL files define Bronze/Silver/Gold tables wherever practical.
+
+## M5 - Checkout Flow Optimization Added
+
+- Checkout Flow Optimization was implemented as the first SQL-first project in `projects/checkout-flow-optimization/`.
+- The MySQL dump is parsed into DuckDB Bronze tables, Silver filters the July 2022 through January 2023 analysis window, and Gold produces monthly checkout, abandonment, error, device, KPI, quiz, and report outputs.
+- The Streamlit dashboard reads Gold marts only and translates the Tableau story requirements into three tabs: checkout success, cart abandonment, and errors/devices.
+- MySQL CLI remains a fallback validation oracle, but DuckDB is canonical because ingestion and quality checks passed locally.

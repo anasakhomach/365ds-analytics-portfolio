@@ -8,6 +8,8 @@
   "skill_package": "agent-skills",
   "constraints": [
     "Hidden .agents and .codex are local junction roots; edit agent-skills as the canonical package.",
-    "Raw source-datasets files should remain immutable."
+    "Raw source-datasets files should remain immutable.",
+    "DuckDB is canonical and Streamlit replaces Tableau for repo dashboards unless the user asks otherwise.",
+    "For relational 365DS projects, Python orchestrates while SQL files define Bronze/Silver/Gold transformations where practical."
   ]
 }
