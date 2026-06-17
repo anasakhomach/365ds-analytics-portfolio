@@ -15,8 +15,10 @@
 2. Inventory the matching raw files under `source-datasets/`.
 3. Define the deliverable contract before editing: inputs, outputs, toolchain, assumptions, and verification.
 4. Preserve raw source files. Put derived work in a project-specific output folder.
-5. Run focused verification for touched code, SQL, notebooks, dashboards, or generated artifacts.
-6. Update `docs/agent-memory/current-thread-memory.md` after meaningful milestones or before handoff.
+5. Prefer the repo-standard DuckDB medallion flow for analytics engineering work: Bronze preserves raw inputs, Silver cleans/types/joins, Gold exposes dashboard-ready marts.
+6. Prefer Streamlit for local dashboards. Dashboards should read Gold outputs only, not raw files or hidden cleaning logic.
+7. Run focused verification for touched code, SQL, notebooks, dashboards, or generated artifacts.
+8. Update `docs/agent-memory/current-thread-memory.md` after meaningful milestones or before handoff.
 
 ## Useful Local Skills
 
