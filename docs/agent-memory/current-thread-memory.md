@@ -36,6 +36,7 @@
 - `requirements-analytics.txt`: common Python/Jupyter analytics environment for pandas, plotting, stats, and ML.
 - `requirements-langchain.txt`: pinned LangChain/OpenAI/Chroma environment for the chatbot project.
 - `projects/real-estate-market-analysis/`: first implemented 365DS project, with DuckDB Bronze/Silver/Gold scripts, SQL quality checks, docs, and a Streamlit dashboard reading Gold marts only.
+- `projects/user-journey-analysis/`: second implemented 365DS project, with required journey helper functions, DuckDB Bronze/Silver/Gold scripts, SQL quality checks, docs, report, and a Streamlit dashboard reading Gold marts only.
 
 ## Imported Skills
 
@@ -71,7 +72,7 @@ Imported from `C:\Users\Nitro\aicvgen\.tmp\agent-skills\skills`:
 
 - Imported AICVGen skills may contain Claude/OpenCode-flavored wording. Treat them as useful workflow references, not binding product policy.
 - Jeremy Longshore upstream skills were adapted as consolidated repo-local skills instead of copied one-for-one because the upstream folders are broad and generic while this repo needs compact 365DS/DuckDB workflows.
-- Real Estate project code exists, but dependency installation was blocked by sandbox network approval limits before the pipeline could be run end to end.
+- Generated project warehouses, caches, and Streamlit runtime outputs are ignored and should not be committed.
 - Some sources require external tools or format-specific handling, such as Tableau `.twbx`, PDF sketches, and notebooks.
 - The visible `agent-skills/` directory remains the canonical edit target; hidden paths are local junction aliases.
 
@@ -89,14 +90,16 @@ Imported from `C:\Users\Nitro\aicvgen\.tmp\agent-skills\skills`:
 - 2026-06-17: Created baseline commit `fedc359` (`chore: establish 365ds analytics workspace`) and stack commit `0390c9f` (`chore: use duckdb streamlit analytics stack`).
 - 2026-06-17: Created `.venv-365ds` with CPython 3.13.7 using `.uv-cache/`; normal `uv pip install` failed on sandboxed PyPI socket access, escalated install was rejected by the approval system usage limit, and offline cache had no pandas.
 - 2026-06-17: Added `projects/real-estate-market-analysis/` pipeline code and Streamlit dashboard; static `py_compile` check passed for all new Python files.
+- 2026-06-17: Real Estate dependencies became available in `.venv-365ds`; pipeline and quality checks passed, and the project was committed as `e1a1a8b` (`feat: add real estate duckdb streamlit project`), followed by quiz answer documentation commit `2f0adbf`.
+- 2026-06-17: Added `projects/user-journey-analysis/` with required Python journey functions, DuckDB Bronze/Silver/Gold pipeline, SQL quality checks, report, and Streamlit dashboard; static compile, runtime pipeline, and quiz regression checks passed.
+
+- 2026-06-17: Added projects/real-estate-market-analysis/reports/real_estate_market_analysis_star_b_retrospective.md as an internal STAR-B proof report for the Real Estate project; no pipeline rerun or source data changes were performed.
 
 ## Next Steps
 
-- Install analytics dependencies into `.venv-365ds` once network approval is available:
-  `uv pip install --python .\.venv-365ds\Scripts\python.exe -r requirements-analytics.txt`
-- Run `.\.venv-365ds\Scripts\python.exe projects\real-estate-market-analysis\scripts\pipeline.py`.
-- Run the Real Estate Streamlit dashboard after the pipeline creates `warehouse.duckdb`.
+- Review the User Journey Streamlit dashboard locally and use the generated report for quiz/supporting answers.
+- Pick the next project after User Journey; likely move to a SQL dump project using DuckDB ingestion first, and MySQL CLI only when dump compatibility requires it.
 
 ## Recent Delta
 
-- 2026-06-17: Added repo-local agent skill package and starter memory artifacts; expanded it with adapted analytics SQL, dashboard storytelling, and data quality contract skills from the requested GitHub sources; fixed hidden `.agents`/`.codex` usability via junctions; added starter Python requirements files for analytics and LangChain work; committed the baseline and DuckDB/Streamlit stack; began the Real Estate project implementation.
+- 2026-06-17: Added repo-local agent skill package and starter memory artifacts; expanded it with adapted analytics SQL, dashboard storytelling, and data quality contract skills from the requested GitHub sources; fixed hidden `.agents`/`.codex` usability via junctions; added starter Python requirements files for analytics and LangChain work; committed the baseline and DuckDB/Streamlit stack; completed Real Estate and User Journey as DuckDB/Streamlit projects.
