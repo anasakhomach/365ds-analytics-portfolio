@@ -22,6 +22,9 @@
 - `.agents/skills` and `.codex/skills` are junctions to `agent-skills/`, so the hidden skill paths and the visible source package resolve to the same files.
 - `.gitignore` excludes `.agents/`, `.codex/`, and `agent-hidden-roots/` because these are local junction/support paths.
 - Neighboring repos establish the preferred local warehouse pattern: DuckDB plus Bronze/Silver/Gold layers, Python orchestration, SQL quality checks, and Streamlit dashboards.
+- Current repo standard: use DuckDB as the canonical local analytics engine and Streamlit for dashboards. Tableau project briefs remain source requirements, but repo deliverables should use Streamlit unless the user explicitly asks for Tableau.
+- Project venv target is `.venv-365ds`, created with the latest local Python that `uv` resolves for Python 3.13. On 2026-06-17 this resolved to CPython 3.13.7.
+- `uv` must use the workspace-local cache `.uv-cache/` in this sandbox because the user-level uv cache and `C:\tmp` both hit ACL issues.
 - AICVGen memory artifacts were used as the workflow model only; product-specific CV-generator decisions were not imported into this repo.
 
 ## Repository Map
@@ -32,6 +35,7 @@
 - `docs/agent-memory/`: durable memory package for future handoffs.
 - `requirements-analytics.txt`: common Python/Jupyter analytics environment for pandas, plotting, stats, and ML.
 - `requirements-langchain.txt`: pinned LangChain/OpenAI/Chroma environment for the chatbot project.
+- `projects/real-estate-market-analysis/`: first implemented 365DS project, with DuckDB Bronze/Silver/Gold scripts, SQL quality checks, docs, and a Streamlit dashboard reading Gold marts only.
 
 ## Imported Skills
 
@@ -67,7 +71,7 @@ Imported from `C:\Users\Nitro\aicvgen\.tmp\agent-skills\skills`:
 
 - Imported AICVGen skills may contain Claude/OpenCode-flavored wording. Treat them as useful workflow references, not binding product policy.
 - Jeremy Longshore upstream skills were adapted as consolidated repo-local skills instead of copied one-for-one because the upstream folders are broad and generic while this repo needs compact 365DS/DuckDB workflows.
-- This repo has no implemented project outputs yet, only briefs and source datasets.
+- Real Estate project code exists, but dependency installation was blocked by sandbox network approval limits before the pipeline could be run end to end.
 - Some sources require external tools or format-specific handling, such as Tableau `.twbx`, PDF sketches, and notebooks.
 - The visible `agent-skills/` directory remains the canonical edit target; hidden paths are local junction aliases.
 
@@ -82,13 +86,17 @@ Imported from `C:\Users\Nitro\aicvgen\.tmp\agent-skills\skills`:
 - 2026-06-17: Reviewed upstream GitHub skill directories for `12-data-analytics` and `11-data-pipelines`; adapted relevant ideas into consolidated local skills.
 - 2026-06-17: Replaced problematic `.agents` and `.codex` hidden roots with local junctions to writable support directories; `.agents/skills` and `.codex/skills` now point to `agent-skills/`.
 - 2026-06-17: Added setup files `requirements-analytics.txt` and `requirements-langchain.txt`; updated `.gitignore` for `.env`, extra venvs, and local Chroma/vector-store artifacts.
+- 2026-06-17: Created baseline commit `fedc359` (`chore: establish 365ds analytics workspace`) and stack commit `0390c9f` (`chore: use duckdb streamlit analytics stack`).
+- 2026-06-17: Created `.venv-365ds` with CPython 3.13.7 using `.uv-cache/`; normal `uv pip install` failed on sandboxed PyPI socket access, escalated install was rejected by the approval system usage limit, and offline cache had no pandas.
+- 2026-06-17: Added `projects/real-estate-market-analysis/` pipeline code and Streamlit dashboard; static `py_compile` check passed for all new Python files.
 
 ## Next Steps
 
-- Run skill validation after edits complete.
-- Choose the first 365DS project brief to implement and create a project-specific derived-output folder.
-- Add `.gitignore` rules before generating databases, notebooks, dashboard exports, or large derived files.
+- Install analytics dependencies into `.venv-365ds` once network approval is available:
+  `uv pip install --python .\.venv-365ds\Scripts\python.exe -r requirements-analytics.txt`
+- Run `.\.venv-365ds\Scripts\python.exe projects\real-estate-market-analysis\scripts\pipeline.py`.
+- Run the Real Estate Streamlit dashboard after the pipeline creates `warehouse.duckdb`.
 
 ## Recent Delta
 
-- 2026-06-17: Added repo-local agent skill package and starter memory artifacts; expanded it with adapted analytics SQL, dashboard storytelling, and data quality contract skills from the requested GitHub sources; fixed hidden `.agents`/`.codex` usability via junctions; added starter Python requirements files for analytics and LangChain work.
+- 2026-06-17: Added repo-local agent skill package and starter memory artifacts; expanded it with adapted analytics SQL, dashboard storytelling, and data quality contract skills from the requested GitHub sources; fixed hidden `.agents`/`.codex` usability via junctions; added starter Python requirements files for analytics and LangChain work; committed the baseline and DuckDB/Streamlit stack; began the Real Estate project implementation.

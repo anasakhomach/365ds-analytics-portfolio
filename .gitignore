@@ -4,6 +4,7 @@ agent-hidden-roots/
 
 .venv/
 .venv-*/
+.uv-cache/
 __pycache__/
 *.pyc
 
