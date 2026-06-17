@@ -1,0 +1,4 @@
+interface:
+  display_name: "DuckDB Medallion Pipeline"
+  short_description: "Build Bronze-Silver-Gold pipelines"
+  default_prompt: "Use $duckdb-medallion-pipeline to build or repair this DuckDB medallion analytics pipeline."

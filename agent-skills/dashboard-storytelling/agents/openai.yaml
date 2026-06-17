@@ -1,0 +1,4 @@
+interface:
+  display_name: "Dashboard Storytelling"
+  short_description: "Plan dashboards and reports"
+  default_prompt: "Use $dashboard-storytelling to turn analysis results into a clear dashboard or report story."

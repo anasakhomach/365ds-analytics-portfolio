@@ -1,0 +1,4 @@
+interface:
+  display_name: "Analytics SQL Patterns"
+  short_description: "Reusable SQL analytics patterns"
+  default_prompt: "Use $analytics-sql-patterns to design the SQL metrics, funnels, cohorts, and validation queries for this analysis."

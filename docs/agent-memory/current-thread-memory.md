@@ -1,0 +1,94 @@
+# Current Thread Memory
+
+## Workstream
+
+- Repository: `C:\Users\Nitro\data-analytics-project\365ds-demo-projects`
+- Focus: set up durable agent skills and memory for 365 Data Science analytics projects, with reusable data engineering patterns from neighboring DuckDB warehouse repos.
+- Current objective: preserve enough repo-local context that future agents can continue analytics or data engineering work without rediscovering the source repos.
+
+## How To Use This Artifact
+
+- Read this file before planning substantial work in this repo.
+- Use `thread-walkthrough.md` only when the milestone sequence matters.
+- Update this file after meaningful repo changes, verification runs, or durable workflow decisions.
+- Keep entries curated and concise; do not paste raw transcript history.
+
+## Durable Decisions
+
+- Raw files under `source-datasets/` are immutable inputs.
+- Project briefs under `project-instructions/` define the analysis contract for each 365DS project.
+- Local skill package lives under `agent-skills/`.
+- `.agents` and `.codex` are repo-local junction roots into `agent-hidden-roots/`.
+- `.agents/skills` and `.codex/skills` are junctions to `agent-skills/`, so the hidden skill paths and the visible source package resolve to the same files.
+- `.gitignore` excludes `.agents/`, `.codex/`, and `agent-hidden-roots/` because these are local junction/support paths.
+- Neighboring repos establish the preferred local warehouse pattern: DuckDB plus Bronze/Silver/Gold layers, Python orchestration, SQL quality checks, and Streamlit dashboards.
+- AICVGen memory artifacts were used as the workflow model only; product-specific CV-generator decisions were not imported into this repo.
+
+## Repository Map
+
+- `project-instructions/`: user-facing project briefs.
+- `source-datasets/`: raw SQL, CSV, Tableau workbook, PDF, and notebook/source assets.
+- `agent-skills/`: repo-local agent skill package.
+- `docs/agent-memory/`: durable memory package for future handoffs.
+- `requirements-analytics.txt`: common Python/Jupyter analytics environment for pandas, plotting, stats, and ML.
+- `requirements-langchain.txt`: pinned LangChain/OpenAI/Chroma environment for the chatbot project.
+
+## Imported Skills
+
+Custom skills:
+- `data-analytics-case-study`
+- `analytics-sql-patterns`
+- `dashboard-storytelling`
+- `duckdb-medallion-pipeline`
+- `data-quality-contracts`
+- `repo-memory-ledger`
+
+Imported from `C:\Users\Nitro\aicvgen\.tmp\agent-skills\skills`:
+- `using-agent-skills`
+- `context-engineering`
+- `planning-and-task-breakdown`
+- `incremental-implementation`
+- `test-driven-development`
+- `debugging-and-error-recovery`
+- `code-review-and-quality`
+- `documentation-and-adrs`
+- `git-workflow-and-versioning`
+- `source-driven-development`
+
+## Source Repos Consulted
+
+- `C:\Users\Nitro\data-analytics-project\maven-fuzzy-factory`: standardized DuckDB analytics pipeline with `warehouse.duckdb`, Bronze/Silver/Gold scripts, SQL quality checks, and Streamlit dashboard.
+- `C:\Users\Nitro\data-analytics-project\baraa-warehouse-example`: modern DuckDB warehouse example with ERP/CRM CSV sources, medallion layers, star schema, docs, SQL tests, and Streamlit dashboard.
+- `C:\Users\Nitro\aicvgen`: source of general engineering skills and the memory artifact pattern under `mvp/docs/agent-memory/`.
+- `https://github.com/jeremylongshore/claude-code-plugins-plus-skills/tree/main/skills/12-data-analytics`: upstream source list for analytics skill ideas such as funnels, cohorts, KPIs, SQL helpers, dashboards, reports, and visualization.
+- `https://github.com/jeremylongshore/claude-code-plugins-plus-skills/tree/main/skills/11-data-pipelines`: upstream source list for pipeline skill ideas such as data quality, schema validation, metadata, lineage, file conversion, and SQL transforms.
+
+## Known Risks And Constraints
+
+- Imported AICVGen skills may contain Claude/OpenCode-flavored wording. Treat them as useful workflow references, not binding product policy.
+- Jeremy Longshore upstream skills were adapted as consolidated repo-local skills instead of copied one-for-one because the upstream folders are broad and generic while this repo needs compact 365DS/DuckDB workflows.
+- This repo has no implemented project outputs yet, only briefs and source datasets.
+- Some sources require external tools or format-specific handling, such as Tableau `.twbx`, PDF sketches, and notebooks.
+- The visible `agent-skills/` directory remains the canonical edit target; hidden paths are local junction aliases.
+
+## Verification History
+
+- 2026-06-17: Confirmed repo had no Git metadata, then initialized Git with `git init`.
+- 2026-06-17: Inventoried current repo, Maven Fuzzy Factory, Baraa warehouse example, and AICVGen skill/memory artifacts.
+- 2026-06-17: Attempted `.agents/skills` and `.codex/skills` scaffolding; child writes failed with Windows access denied after initial hidden-folder creation.
+- 2026-06-17: Validated all `agent-skills/*/SKILL.md` files with `quick_validate.py`.
+- 2026-06-17: Parsed `docs/agent-memory/memory-index.json` with `python -m json.tool`.
+- 2026-06-17: Confirmed `agent-skills`, `AGENTS.md`, and `docs/agent-memory` contain no non-ASCII characters.
+- 2026-06-17: Reviewed upstream GitHub skill directories for `12-data-analytics` and `11-data-pipelines`; adapted relevant ideas into consolidated local skills.
+- 2026-06-17: Replaced problematic `.agents` and `.codex` hidden roots with local junctions to writable support directories; `.agents/skills` and `.codex/skills` now point to `agent-skills/`.
+- 2026-06-17: Added setup files `requirements-analytics.txt` and `requirements-langchain.txt`; updated `.gitignore` for `.env`, extra venvs, and local Chroma/vector-store artifacts.
+
+## Next Steps
+
+- Run skill validation after edits complete.
+- Choose the first 365DS project brief to implement and create a project-specific derived-output folder.
+- Add `.gitignore` rules before generating databases, notebooks, dashboard exports, or large derived files.
+
+## Recent Delta
+
+- 2026-06-17: Added repo-local agent skill package and starter memory artifacts; expanded it with adapted analytics SQL, dashboard storytelling, and data quality contract skills from the requested GitHub sources; fixed hidden `.agents`/`.codex` usability via junctions; added starter Python requirements files for analytics and LangChain work.

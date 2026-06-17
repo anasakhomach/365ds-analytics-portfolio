@@ -1,0 +1,4 @@
+interface:
+  display_name: "Data Analytics Case Study"
+  short_description: "Run 365DS-style analytics projects"
+  default_prompt: "Use $data-analytics-case-study to turn this project brief and dataset into a reproducible analytics deliverable."

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Data Quality Contracts"
+  short_description: "Validate schemas and lineage"
+  default_prompt: "Use $data-quality-contracts to define schema checks, quality gates, metadata, and lineage for this pipeline."

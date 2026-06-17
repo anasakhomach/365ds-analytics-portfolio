@@ -1,0 +1,4 @@
+interface:
+  display_name: "Repo Memory Ledger"
+  short_description: "Maintain durable project memory"
+  default_prompt: "Use $repo-memory-ledger to update this repo's agent memory before handoff."

@@ -1,0 +1,13 @@
+{
+  "repo": "C:\\Users\\Nitro\\data-analytics-project\\365ds-demo-projects",
+  "focus": "365 Data Science analytics and data engineering projects",
+  "last_updated": "2026-06-17",
+  "primary_artifact": "docs/agent-memory/current-thread-memory.md",
+  "walkthrough": "docs/agent-memory/thread-walkthrough.md",
+  "schema": "docs/agent-memory/artifact-schema.md",
+  "skill_package": "agent-skills",
+  "constraints": [
+    "Hidden .agents and .codex are local junction roots; edit agent-skills as the canonical package.",
+    "Raw source-datasets files should remain immutable."
+  ]
+}
