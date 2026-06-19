@@ -25,11 +25,67 @@ The Compose app exposes the hub at `http://localhost:8507`.
 
 ## AI Configuration
 
-The local TF-IDF backend works without an API key and is used for tests/offline demos. To enable OpenAI-backed answer generation in a later enhancement, copy `.env.example` to `.env` and set `OPENAI_API_KEY`.
+The hub is provider-agnostic. It defaults to owner gateway mode, but falls back to local TF-IDF retrieval plus the DuckDB Gold tool when no key is configured.
+
+Copy `.env.example` to `.env`, then choose one mode.
+
+### Local Fallback
+
+```powershell
+LEARNING_HUB_AI_MODE=local
+LEARNING_HUB_EMBEDDING_BACKEND=local_tfidf
+```
+
+No key is required. Answers are extractive and citation-first.
+
+### OpenRouter
+
+```powershell
+LEARNING_HUB_AI_MODE=gateway
+LEARNING_HUB_PROVIDER=openrouter
+LEARNING_HUB_CHAT_MODEL=~openai/gpt-latest
+OPENROUTER_API_KEY=...
+```
+
+### Custom OpenAI-Compatible Endpoint
+
+```powershell
+LEARNING_HUB_AI_MODE=provider
+LEARNING_HUB_PROVIDER=openai_compatible
+LEARNING_HUB_BASE_URL=https://api.openai.com/v1
+LEARNING_HUB_CHAT_MODEL=gpt-4o-mini
+OPENAI_API_KEY=...
+```
+
+### LiteLLM Gateway
+
+```powershell
+OPENAI_API_KEY=...
+LITELLM_API_KEY=anything
+LEARNING_HUB_PROVIDER=litellm
+LEARNING_HUB_BASE_URL=http://litellm:4000/v1
+LEARNING_HUB_CHAT_MODEL=365ds-chat
+docker compose --profile gateway up learning-hub litellm
+```
+
+The LiteLLM profile uses `apps/learning-hub/config/litellm_config.yaml` and exposes the gateway on port `4000`.
+
+### BYOK
+
+If `LEARNING_HUB_ENABLE_BYOK=true`, visitors can enter a session API key in the Streamlit sidebar. The key is held only in `st.session_state`, masked in status labels, and never written to disk.
+
+### Optional Chroma Index
+
+```powershell
+.\.venv-365ds\Scripts\python.exe apps\learning-hub\scripts\build_index.py --backend chroma_openai_compatible
+```
+
+Chroma indexing requires a configured embedding key. The default `local_tfidf` backend remains the deterministic offline path.
 
 ## Safety
 
 - The data tool connects to project warehouses in DuckDB read-only mode.
 - Queries are restricted to approved `gold.*` marts listed in `catalog/projects.yaml`.
 - Writes, lower-layer access, arbitrary file paths, and destructive SQL are blocked.
+- LLM-generated SQL is treated as untrusted and must pass the same Gold-only validator before execution.
 - Generated `.index/`, `.chroma/`, caches, and logs are ignored by git.

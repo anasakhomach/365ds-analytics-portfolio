@@ -76,3 +76,10 @@
 - The index manifest now records a source hash, backend, and embedding model so model/source drift can be detected before relying on stale retrieval.
 - Docker Compose now has an optional LiteLLM gateway profile using a project-local config file; OpenRouter remains a managed gateway option through env configuration.
 - The Quiz/Data Coach can use a live model to propose JSON SQL, but every query still runs through the existing approved Gold-mart validator before DuckDB execution.
+
+## M11 - Provider-Agnostic Hub Upgrade Documented
+
+- Batch 3 documented local, OpenRouter, custom OpenAI-compatible, LiteLLM, BYOK, and Chroma runbooks in the Learning Hub README.
+- The architecture note now reflects the actual live AI, vector index, gateway, and Gold SQL planner behavior.
+- ADR-001 records the provider-agnostic runtime decision and why BYOK-only, OpenAI-only, and Celery-from-v1 were rejected.
+- Docker Compose config validates, but image build still needs Docker Desktop's Linux engine to be running.

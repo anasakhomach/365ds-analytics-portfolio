@@ -8,13 +8,23 @@ The hub turns the five completed analytics projects into one portfolio learning 
 
 - Streamlit runs one multipage app from `apps/learning-hub/streamlit_app.py`.
 - `catalog/projects.yaml` is the source of truth for project paths, reports, dashboards, warehouses, approved Gold tables, and starter questions.
-- The local indexer builds a TF-IDF search index under `.index/` for offline demos and tests.
-- OpenAI/Chroma dependencies are listed in `requirements-learning-hub.txt` for a fuller RAG backend, but the v1 app does not require network calls.
-- Docker Compose runs the hub and an `indexer` one-shot service with persistent volumes for `.index/` and `.chroma/`.
+- The default indexer builds a TF-IDF search index under `.index/` for offline demos and tests.
+- The optional Chroma backend uses OpenAI-compatible embeddings and records backend, embedding model, and source hash metadata in `manifest.json`.
+- Live answers use an OpenAI-compatible client pointed at OpenAI, OpenRouter, LiteLLM, or another compatible gateway.
+- Docker Compose runs the hub and an `indexer` one-shot service. The optional `gateway` profile adds a LiteLLM proxy service using `apps/learning-hub/config/litellm_config.yaml`.
+
+## AI Modes
+
+- `local`: no key required; retrieval-grounded fallback and DuckDB Gold tool only.
+- `provider`: direct OpenAI-compatible endpoint configured by `LEARNING_HUB_BASE_URL`.
+- `gateway`: default owner-key mode for LiteLLM or OpenRouter.
+- BYOK: optional visitor key stored only in Streamlit session state.
 
 ## Data Access
 
-The hub does not restructure existing projects. It reads the generated `warehouse.duckdb` files and only exposes tables listed in the catalog. The query tool opens DuckDB in read-only mode and rejects writes, raw/Bronze/Silver access, unapproved tables, and multiple statements.
+The hub does not restructure existing projects. It reads the generated `warehouse.duckdb` files and only exposes tables listed in the catalog. The query tool opens DuckDB in read-only mode and rejects writes, raw/Bronze/Silver access, unapproved tables, file reads, and multiple statements.
+
+The LLM SQL planner is advisory only. It must return JSON with a single SQL string, and that SQL still goes through the same Gold-only validator before DuckDB execution.
 
 ## Why Celery Is Deferred
 
