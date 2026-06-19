@@ -83,3 +83,11 @@
 - The architecture note now reflects the actual live AI, vector index, gateway, and Gold SQL planner behavior.
 - ADR-001 records the provider-agnostic runtime decision and why BYOK-only, OpenAI-only, and Celery-from-v1 were rejected.
 - Docker Compose config, image build, indexer run, container startup, HTTP smoke test, and container-internal pytest all pass with Docker Desktop running.
+
+## M12 - Learning Hub Conversational Agent Upgrade Added
+
+- The assistant now has session-only conversational memory, follow-up-aware retrieval, and runtime self-awareness so questions about the active model/provider do not get confused with project ML models.
+- `catalog/projects.yaml` records project traits for workflow, analytics engine, visualization, and AI data access; the assistant uses these traits for deterministic portfolio architecture answers such as SQL-first medallion project lists.
+- `LEARNING_HUB_AGENT_BACKEND=custom|langgraph|auto` selects between the default custom backend and an optional LangGraph `StateGraph` backend with session-local thread IDs.
+- ADR-002 documents the hybrid backend decision; README, architecture notes, `.env.example`, and Compose expose the new backend selector.
+- Local and Docker verification pass with LangGraph installed: 31 hub tests, index checks, Docker rebuild, container tests, HTTP smoke, and explicit container LangGraph route smoke.

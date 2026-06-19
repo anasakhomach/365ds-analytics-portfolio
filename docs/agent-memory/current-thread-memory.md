@@ -91,6 +91,7 @@ Imported from `C:\Users\Nitro\aicvgen\.tmp\agent-skills\skills`:
 - Learning Hub Batch 1 behavior: the custom assistant accepts recent session `history`, uses it for follow-up retrieval and live-model prompts, and answers runtime/provider/model questions from safe `AIRuntime` metadata instead of project RAG.
 - Learning Hub Batch 2 behavior: `catalog/projects.yaml` now records project traits for workflow, analytics engine, visualization, and AI data access. The assistant uses those traits for high-confidence portfolio architecture answers such as SQL-first medallion project lists.
 - Learning Hub Batch 3 behavior: `LEARNING_HUB_AGENT_BACKEND=custom|langgraph|auto` is available. The default remains `custom`; the optional LangGraph backend uses an explicit `StateGraph` with session-local thread IDs and reuses the existing runtime, retrieval, and safe Gold-only data tool contracts.
+- Learning Hub Batch 4 behavior: docs, ADR-002, `.env.example`, and Compose now document/expose the hybrid custom/LangGraph backend. Streamlit runtime status includes the configured agent backend alongside provider/model/key source.
 
 ## Verification History
 
@@ -120,13 +121,15 @@ Imported from `C:\Users\Nitro\aicvgen\.tmp\agent-skills\skills`:
 - 2026-06-19: Learning Hub Batch 1 added session-only conversation memory and runtime self-awareness to the custom assistant. Verification: focused assistant tests returned 9 passed; full hub tests returned 26 passed; `py_compile` passed for `streamlit_app.py` and `assistant.py`; `build_index.py --check` still reported 104 documents and 464 chunks.
 - 2026-06-19: Learning Hub Batch 2 added structured project traits and deterministic SQL-first medallion routing. Verification: focused catalog/assistant tests returned 14 passed; full hub tests returned 28 passed; `py_compile` passed for `streamlit_app.py`, `assistant.py`, and `catalog.py`; `build_index.py --check` still reported 104 documents and 464 chunks.
 - 2026-06-19: Learning Hub Batch 3 added the optional LangGraph backend and installed `langgraph==1.2.6` into `.venv-365ds` after sandboxed PyPI access failed and escalated uv install succeeded. Verification: focused assistant/settings tests returned 17 passed with real LangGraph; focused assistant tests returned 12 passed including LangGraph Gold data routing; full hub tests returned 31 passed; `py_compile` passed for `streamlit_app.py`, `assistant.py`, and `settings.py`; `build_index.py --check` still reported 104 documents and 464 chunks. Note: `langgraph.__version__` is not exposed; package version was verified with `importlib.metadata.version('langgraph')`.
+- 2026-06-19: Learning Hub Batch 4 documented the hybrid backend and completed final verification. Local verification: full hub tests returned 31 passed; `py_compile` passed for `streamlit_app.py`, `assistant.py`, `settings.py`, and `catalog.py`; `build_index.py --check` reported 104 documents and 464 chunks; `docker compose config` passed with the known Docker config ACL warning. Docker verification: `docker compose build learning-hub` passed; `docker compose run --rm indexer` produced 104 documents and 464 chunks; `docker compose up -d learning-hub` recreated the service; `http://localhost:8507` returned HTTP 200; container-internal tests returned 31 passed; explicit container LangGraph smoke returned route `project_traits` and expected project names.
 
 - 2026-06-17: Added projects/real-estate-market-analysis/reports/real_estate_market_analysis_star_b_retrospective.md as an internal STAR-B proof report for the Real Estate project; no pipeline rerun or source data changes were performed.
 
 ## Next Steps
 
-- Implement Batch 4: docs, ADR, UI runtime/backend polish, final memory walkthrough, and Docker smoke checks.
-- Keep the Docker-served Learning Hub at `http://localhost:8507` in mind during smoke checks; stop with `docker compose down` when no longer needed.
+- Review the Docker-served Learning Hub at `http://localhost:8507`.
+- To demo LangGraph explicitly, set `LEARNING_HUB_AGENT_BACKEND=langgraph` before starting the app or container.
+- Stop the Docker service when done with `docker compose down`.
 
 ## Deferred Missions
 

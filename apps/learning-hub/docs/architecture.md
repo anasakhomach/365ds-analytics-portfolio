@@ -11,6 +11,7 @@ The hub turns the five completed analytics projects into one portfolio learning 
 - The default indexer builds a TF-IDF search index under `.index/` for offline demos and tests.
 - The optional Chroma backend uses OpenAI-compatible embeddings and records backend, embedding model, and source hash metadata in `manifest.json`.
 - Live answers use an OpenAI-compatible client pointed at OpenAI, OpenRouter, LiteLLM, or another compatible gateway.
+- The assistant backend is selected by `LEARNING_HUB_AGENT_BACKEND`. `custom` is the default stable path; `langgraph` runs an explicit `StateGraph`; `auto` prefers LangGraph when installed and otherwise uses the custom path.
 - Docker Compose runs the hub and an `indexer` one-shot service. The optional `gateway` profile adds a LiteLLM proxy service using `apps/learning-hub/config/litellm_config.yaml`.
 
 ## AI Modes
@@ -19,6 +20,14 @@ The hub turns the five completed analytics projects into one portfolio learning 
 - `provider`: direct OpenAI-compatible endpoint configured by `LEARNING_HUB_BASE_URL`.
 - `gateway`: default owner-key mode for LiteLLM or OpenRouter.
 - BYOK: optional visitor key stored only in Streamlit session state.
+
+## Assistant Backends
+
+The custom backend is a small deterministic pipeline: classify runtime/self questions, route catalog-trait questions, optionally query approved Gold marts, retrieve indexed context, and synthesize with the configured live model when available.
+
+The LangGraph backend preserves the same public assistant interface but moves orchestration into a `StateGraph` with classify, retrieve, and synthesize nodes. It uses an in-memory checkpointer plus a Streamlit session thread id, so conversational state is session-scoped and not written to disk.
+
+Both backends share the same provider runtime, BYOK behavior, local TF-IDF or Chroma retrieval, and DuckDB Gold validator.
 
 ## Data Access
 

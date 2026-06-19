@@ -43,7 +43,7 @@ class AIRuntime:
         source = self.api_key_source or "none"
         status = "live" if self.live_enabled else "local fallback"
         return (
-            f"{status} | mode={self.effective_mode} | provider={self.provider} | "
+            f"{status} | agent={self.settings.agent_backend} | mode={self.effective_mode} | provider={self.provider} | "
             f"model={self.chat_model} | key_source={source}"
         )
 

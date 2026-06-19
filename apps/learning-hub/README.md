@@ -29,6 +29,18 @@ The hub is provider-agnostic. It defaults to owner gateway mode, but falls back 
 
 Copy `.env.example` to `.env`, then choose one mode.
 
+### Assistant Backend
+
+```powershell
+LEARNING_HUB_AGENT_BACKEND=custom
+```
+
+- `custom`: default, lightweight assistant pipeline with session memory, runtime self-awareness, RAG, and safe Gold data routing.
+- `langgraph`: explicit LangGraph `StateGraph` backend using session-local thread IDs and the same provider/data-tool contracts.
+- `auto`: use LangGraph when the dependency is installed; otherwise fall back to `custom`.
+
+The backend choice does not change data safety: DuckDB access remains read-only and restricted to approved Gold marts.
+
 ### Local Fallback
 
 ```powershell
