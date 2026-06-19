@@ -41,3 +41,10 @@
 - The MySQL dump is parsed into DuckDB Bronze tables, Silver filters the July 2022 through January 2023 analysis window, and Gold produces monthly checkout, abandonment, error, device, KPI, quiz, and report outputs.
 - The Streamlit dashboard reads Gold marts only and translates the Tableau story requirements into three tabs: checkout success, cart abandonment, and errors/devices.
 - MySQL CLI remains a fallback validation oracle, but DuckDB is canonical because ingestion and quality checks passed locally.
+
+## M6 - Customer Engagement Analysis Added
+
+- Customer Engagement Analysis was implemented in `projects/customer-engagement-analysis/` as the second SQL-first Tableau-to-Streamlit project.
+- The source MySQL dump requires multi-block INSERT parsing for `365_student_learning`; Bronze records insert-block counts so the parser behavior is quality-checked.
+- Silver creates subscription windows, country labels from installed Babel data, and the course-required `student_engagement` extract with 81,532 rows.
+- Gold produces course performance, monthly engagement, onboarding, country funnel, KPI, quiz, and report marts; the dashboard reads Gold only.
