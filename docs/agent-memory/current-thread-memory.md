@@ -4,7 +4,7 @@
 
 - Repository: `C:\Users\Nitro\data-analytics-project\365ds-demo-projects`
 - Focus: set up durable agent skills and memory for 365 Data Science analytics projects, with reusable data engineering patterns from neighboring DuckDB warehouse repos.
-- Current objective: preserve enough repo-local context that future agents can continue analytics or data engineering work without rediscovering the source repos.
+- Current objective: upgrade the Learning Hub assistant in batches: first add real conversational memory and runtime self-awareness to the custom assistant, then add an optional LangGraph backend behind the same provider-agnostic and safe DuckDB Gold-tool contracts.
 
 ## How To Use This Artifact
 
@@ -87,6 +87,7 @@ Imported from `C:\Users\Nitro\aicvgen\.tmp\agent-skills\skills`:
 - Learning Hub BYOK is session-only: visitor keys are accepted through Streamlit password input, kept in `st.session_state`, masked in status labels, and never written to repo files, manifests, logs, or docs.
 - Learning Hub vector retrieval is optional: `local_tfidf` remains the default deterministic backend, while `chroma_openai_compatible` requires a configured embedding API key and records source hashes/model metadata in the index manifest.
 - Learning Hub architecture decision is documented in `docs/decisions/ADR-001-provider-agnostic-learning-hub-ai.md`.
+- Learning Hub agent upgrade plan: keep the existing custom assistant path working, add session-only chat memory and self/runtime routing first, then add `LEARNING_HUB_AGENT_BACKEND=custom|langgraph|auto` with LangGraph as an optional orchestration backend. LangGraph must not replace the safe Gold-only DuckDB validator or BYOK/provider runtime.
 
 ## Verification History
 
@@ -112,13 +113,14 @@ Imported from `C:\Users\Nitro\aicvgen\.tmp\agent-skills\skills`:
 - 2026-06-19: Learning Hub Batch 2 added optional Chroma/OpenAI-compatible indexing, source-hash index manifests, LiteLLM gateway Compose profile, provider-specific key precedence, and a safe LLM-assisted Gold SQL planner that still executes through the Gold-only DuckDB validator. Verification: hub tests returned 23 passed; `build_index.py --check` reported 104 documents and 464 chunks; `docker compose config` and `docker compose --profile gateway config` passed with the known Docker config ACL warning.
 - 2026-06-19: Learning Hub Batch 3 added provider/gateway/BYOK/Chroma runbooks, architecture docs, and ADR-001. Final local verification: hub tests returned 23 passed; explicit `py_compile` passed; `build_index.py --check` and local build reported 104 documents and 464 chunks; Streamlit responded HTTP 200 on `http://localhost:8507`; Docker Compose config checks passed.
 - 2026-06-19: Docker Desktop was started and the Learning Hub Docker path was verified. `docker compose build learning-hub` passed, `docker compose run --rm indexer` built a local TF-IDF index with 104 documents and 464 chunks, `docker compose up -d learning-hub` started `365ds-demo-projects-learning-hub-1`, `http://localhost:8507` returned HTTP 200, and `docker compose exec -T learning-hub python -m pytest apps/learning-hub/tests -q` returned 23 passed.
+- 2026-06-19: Batch 0 baseline for the conversational memory and LangGraph upgrade passed: `.\.venv-365ds\Scripts\python.exe -m pytest apps\learning-hub\tests -q` returned 23 passed; `py_compile` passed for the Learning Hub entrypoint and assistant/runtime modules; `build_index.py --check` reported 104 documents and 464 chunks; `docker compose ps` showed the `learning-hub` service up on port 8507 after escalation. Local venv check reported `langgraph False`, so the LangGraph dependency still needs to be added/installed for Batch 3.
 
 - 2026-06-17: Added projects/real-estate-market-analysis/reports/real_estate_market_analysis_star_b_retrospective.md as an internal STAR-B proof report for the Real Estate project; no pipeline rerun or source data changes were performed.
 
 ## Next Steps
 
-- Review the Docker-served Learning Hub at `http://localhost:8507`.
-- Stop the Docker service when done with `docker compose down`.
+- Implement Batch 1: conversational memory and runtime self-awareness for the custom Learning Hub assistant.
+- Keep the Docker-served Learning Hub at `http://localhost:8507` in mind during smoke checks; stop with `docker compose down` when no longer needed.
 
 ## Deferred Missions
 
