@@ -61,7 +61,7 @@
 - The standalone LangChain chatbot idea was upgraded into `apps/learning-hub/`, one cross-project portfolio assistant for all five completed projects.
 - The hub uses a YAML project catalog, indexes docs/reports/instructions/code/Gold table summaries, and provides a citation-first local retrieval fallback that works without an API key.
 - A safe DuckDB tool reads only approved `gold.*` marts from each project warehouse and rejects writes, lower-layer access, unapproved tables, and multi-statement SQL.
-- Docker support was added from v1 via `Dockerfile.learning-hub` and `docker-compose.yml`; local Streamlit verification passed, while Docker image build requires Docker Desktop's Linux engine to be running.
+- Docker support was added from v1 via `Dockerfile.learning-hub` and `docker-compose.yml`; local Streamlit and Docker verification both pass when Docker Desktop is running.
 
 ## M9 - Learning Hub Provider Layer Started
 
@@ -82,4 +82,4 @@
 - Batch 3 documented local, OpenRouter, custom OpenAI-compatible, LiteLLM, BYOK, and Chroma runbooks in the Learning Hub README.
 - The architecture note now reflects the actual live AI, vector index, gateway, and Gold SQL planner behavior.
 - ADR-001 records the provider-agnostic runtime decision and why BYOK-only, OpenAI-only, and Celery-from-v1 were rejected.
-- Docker Compose config validates, but image build still needs Docker Desktop's Linux engine to be running.
+- Docker Compose config, image build, indexer run, container startup, HTTP smoke test, and container-internal pytest all pass with Docker Desktop running.

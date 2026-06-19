@@ -82,7 +82,7 @@ Imported from `C:\Users\Nitro\aicvgen\.tmp\agent-skills\skills`:
 - The visible `agent-skills/` directory remains the canonical edit target; hidden paths are local junction aliases.
 - Tracking User Engagement translates Excel tasks into reproducible Python/Gold outputs; no committed workbook is required unless the user explicitly asks for one.
 - The Learning Hub is additive. It does not restructure the five completed projects; it indexes their docs/code/reports and reads approved `gold.*` marts only.
-- Docker Compose is configured for the Learning Hub, but Docker Desktop's Linux engine must be running for image build/run verification.
+- Docker Compose is verified for the Learning Hub when Docker Desktop's Linux engine is running.
 - Learning Hub live AI is optional and provider-agnostic: the configured default is owner gateway mode with LiteLLM as the default provider, OpenRouter/custom OpenAI-compatible endpoints supported by env vars, and local TF-IDF/DuckDB fallback whenever no API key is available.
 - Learning Hub BYOK is session-only: visitor keys are accepted through Streamlit password input, kept in `st.session_state`, masked in status labels, and never written to repo files, manifests, logs, or docs.
 - Learning Hub vector retrieval is optional: `local_tfidf` remains the default deterministic backend, while `chroma_openai_compatible` requires a configured embedding API key and records source hashes/model metadata in the index manifest.
@@ -110,15 +110,15 @@ Imported from `C:\Users\Nitro\aicvgen\.tmp\agent-skills\skills`:
 - 2026-06-19: Added `apps/learning-hub/` with a five-project catalog, local TF-IDF RAG-style indexer, citation-first assistant fallback, safe read-only DuckDB Gold query tool, multipage Streamlit hub, Dockerfile, Compose stack, and architecture docs. Local tests passed; Streamlit responded on `http://localhost:8507`; Docker build was blocked because Docker Desktop's Linux engine was not running.
 - 2026-06-19: Learning Hub Batch 1 added provider settings, OpenAI-compatible live model client wiring, session-only BYOK support, LLM answer synthesis over retrieved context/Gold data, streamed chat output, and UI runtime status. Verification: `.\.venv-365ds\Scripts\python.exe -m pytest apps\learning-hub\tests -q` returned 19 passed; `py_compile` passed for the touched hub Python files.
 - 2026-06-19: Learning Hub Batch 2 added optional Chroma/OpenAI-compatible indexing, source-hash index manifests, LiteLLM gateway Compose profile, provider-specific key precedence, and a safe LLM-assisted Gold SQL planner that still executes through the Gold-only DuckDB validator. Verification: hub tests returned 23 passed; `build_index.py --check` reported 104 documents and 464 chunks; `docker compose config` and `docker compose --profile gateway config` passed with the known Docker config ACL warning.
-- 2026-06-19: Learning Hub Batch 3 added provider/gateway/BYOK/Chroma runbooks, architecture docs, and ADR-001. Final verification: hub tests returned 23 passed; explicit `py_compile` passed; `build_index.py --check` and local build reported 104 documents and 464 chunks; Streamlit responded HTTP 200 on `http://localhost:8507`; Docker Compose config checks passed; Docker build remains blocked because Docker Desktop's Linux engine pipe `dockerDesktopLinuxEngine` is not running.
+- 2026-06-19: Learning Hub Batch 3 added provider/gateway/BYOK/Chroma runbooks, architecture docs, and ADR-001. Final local verification: hub tests returned 23 passed; explicit `py_compile` passed; `build_index.py --check` and local build reported 104 documents and 464 chunks; Streamlit responded HTTP 200 on `http://localhost:8507`; Docker Compose config checks passed.
+- 2026-06-19: Docker Desktop was started and the Learning Hub Docker path was verified. `docker compose build learning-hub` passed, `docker compose run --rm indexer` built a local TF-IDF index with 104 documents and 464 chunks, `docker compose up -d learning-hub` started `365ds-demo-projects-learning-hub-1`, `http://localhost:8507` returned HTTP 200, and `docker compose exec -T learning-hub python -m pytest apps/learning-hub/tests -q` returned 23 passed.
 
 - 2026-06-17: Added projects/real-estate-market-analysis/reports/real_estate_market_analysis_star_b_retrospective.md as an internal STAR-B proof report for the Real Estate project; no pipeline rerun or source data changes were performed.
 
 ## Next Steps
 
-- Review the Learning Hub at `http://localhost:8507`.
-- Start Docker Desktop, then rerun `docker compose build learning-hub` and `docker compose run --rm indexer` for container verification.
-- Start Docker Desktop's Linux engine before rerunning `docker compose build learning-hub` and `docker compose run --rm indexer`.
+- Review the Docker-served Learning Hub at `http://localhost:8507`.
+- Stop the Docker service when done with `docker compose down`.
 
 ## Deferred Missions
 
