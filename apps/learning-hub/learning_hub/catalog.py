@@ -31,6 +31,7 @@ class Project:
     reports: tuple[Path, ...]
     gold_tables: tuple[str, ...]
     starter_questions: tuple[str, ...]
+    traits: dict[str, str]
 
     @property
     def document_paths(self) -> tuple[Path, ...]:
@@ -74,6 +75,7 @@ def _load_project(raw: dict[str, Any]) -> Project:
         reports=tuple(repo_path(path) for path in raw.get("reports", [])),
         gold_tables=tuple(raw.get("gold_tables", [])),
         starter_questions=tuple(raw.get("starter_questions", [])),
+        traits=dict(raw.get("traits", {})),
     )
 
 
@@ -110,6 +112,9 @@ def validate_catalog(projects: list[Project] | None = None) -> list[str]:
                 errors.append(f"{project.slug}: missing {display_path(path)}")
         if not project.gold_tables:
             errors.append(f"{project.slug}: no Gold tables listed")
+        for trait in ("workflow", "analytics_engine", "visualization", "ai_data_access"):
+            if not project.traits.get(trait):
+                errors.append(f"{project.slug}: missing trait {trait}")
     return errors
 
 
@@ -161,6 +166,9 @@ def catalog_summary(projects: list[Project] | None = None) -> list[dict[str, Any
             "gold_tables": len(project.gold_tables),
             "documents": len(project.document_paths),
             "code_files": len(project.code_paths),
+            "workflow": project.traits.get("workflow", ""),
+            "analytics_engine": project.traits.get("analytics_engine", ""),
+            "visualization": project.traits.get("visualization", ""),
         }
         for project in projects or load_catalog()
     ]

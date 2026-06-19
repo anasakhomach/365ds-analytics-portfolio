@@ -112,6 +112,10 @@ class LearningAssistant:
         if runtime_response:
             return AssistantPlan(fallback_response=runtime_response)
 
+        trait_response = self._try_project_traits_route(question, project_slug)
+        if trait_response:
+            return AssistantPlan(fallback_response=trait_response)
+
         data_response = self._try_data_route(question, project_slug)
         search_query = self._search_query(question, history)
         results = self.index.search(search_query, project_slug=project_slug, limit=6)
@@ -187,6 +191,60 @@ class LearningAssistant:
             f"Base URL: {self.runtime.base_url}."
         )
         return AssistantResponse(answer=answer, citations=(), route="runtime")
+
+    def _try_project_traits_route(self, question: str, project_slug: str | None) -> AssistantResponse | None:
+        if project_slug:
+            return None
+        lower = question.lower()
+        asks_sql_first = "sql-first" in lower or "sql first" in lower or ("sql" in lower and "medallion" in lower)
+        if not asks_sql_first:
+            return None
+
+        sql_first = [
+            project
+            for project in self.projects
+            if project.traits.get("workflow") == "sql_first_medallion"
+        ]
+        other_medallion = [
+            project
+            for project in self.projects
+            if project.traits.get("workflow") != "sql_first_medallion"
+            and "medallion" in project.traits.get("workflow", "")
+        ]
+        lines = [
+            "The SQL-first medallion projects are:",
+            "",
+            *[f"- **{project.title}**" for project in sql_first],
+        ]
+        if other_medallion:
+            lines.extend(
+                [
+                    "",
+                    "Also note: these projects still use DuckDB medallion layers, but they are not SQL-first:",
+                    *[f"- **{project.title}**: {self._workflow_label(project.traits.get('workflow', ''))}" for project in other_medallion],
+                ]
+            )
+        lines.append("")
+        lines.append("All five projects use DuckDB as the analytics engine and Streamlit for visualization.")
+        citations = tuple(
+            Citation(
+                project.slug,
+                "catalog",
+                "apps/learning-hub/catalog/projects.yaml",
+                "traits",
+                1.0,
+            )
+            for project in (*sql_first, *other_medallion)
+        )
+        return AssistantResponse(answer="\n".join(lines), citations=citations, route="project_traits")
+
+    def _workflow_label(self, workflow: str) -> str:
+        labels = {
+            "python_first_medallion": "Python-first medallion",
+            "python_functions_medallion": "Python function-heavy medallion",
+            "sql_first_medallion": "SQL-first medallion",
+        }
+        return labels.get(workflow, workflow.replace("_", " "))
 
     def _try_data_route(self, question: str, project_slug: str | None) -> AssistantResponse | None:
         if not project_slug:

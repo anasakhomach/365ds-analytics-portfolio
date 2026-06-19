@@ -29,3 +29,15 @@ def test_catalog_includes_documents_and_code_for_each_project() -> None:
         assert project.document_paths
         assert project.code_paths
         assert project.readme_path in project.document_paths
+
+
+def test_catalog_tracks_project_architecture_traits() -> None:
+    projects = load_catalog()
+    by_slug = {project.slug: project for project in projects}
+
+    assert by_slug["real-estate-market-analysis"].traits["workflow"] == "python_first_medallion"
+    assert by_slug["checkout-flow-optimization"].traits["workflow"] == "sql_first_medallion"
+    assert by_slug["customer-engagement-analysis"].traits["workflow"] == "sql_first_medallion"
+    assert by_slug["tracking-user-engagement"].traits["workflow"] == "sql_first_medallion"
+    assert {project.traits["analytics_engine"] for project in projects} == {"duckdb"}
+    assert {project.traits["visualization"] for project in projects} == {"streamlit"}

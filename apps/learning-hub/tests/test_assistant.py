@@ -130,6 +130,20 @@ def test_follow_up_question_uses_recent_history_for_retrieval(tmp_path: Path) ->
     assert "duckdb" in response.answer.lower() or "warehouse" in response.answer.lower() or "data_flow" in joined
 
 
+def test_sql_first_medallion_question_uses_project_traits(tmp_path: Path) -> None:
+    build_local_index(tmp_path)
+    assistant = LearningAssistant(index=load_local_index(tmp_path))
+
+    response = assistant.answer("Which projects use SQL-first medallion layers?")
+
+    assert response.route == "project_traits"
+    assert "Checkout Flow Optimization" in response.answer
+    assert "Customer Engagement Analysis" in response.answer
+    assert "Tracking User Engagement" in response.answer
+    assert "Real Estate Market Analysis" in response.answer
+    assert "Python-first" in response.answer
+
+
 def test_assistant_streams_llm_answer_when_context_exists(tmp_path: Path) -> None:
     build_local_index(tmp_path)
     llm_client = FakeLLMClient()

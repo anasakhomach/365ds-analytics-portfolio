@@ -89,6 +89,7 @@ Imported from `C:\Users\Nitro\aicvgen\.tmp\agent-skills\skills`:
 - Learning Hub architecture decision is documented in `docs/decisions/ADR-001-provider-agnostic-learning-hub-ai.md`.
 - Learning Hub agent upgrade plan: keep the existing custom assistant path working, add session-only chat memory and self/runtime routing first, then add `LEARNING_HUB_AGENT_BACKEND=custom|langgraph|auto` with LangGraph as an optional orchestration backend. LangGraph must not replace the safe Gold-only DuckDB validator or BYOK/provider runtime.
 - Learning Hub Batch 1 behavior: the custom assistant accepts recent session `history`, uses it for follow-up retrieval and live-model prompts, and answers runtime/provider/model questions from safe `AIRuntime` metadata instead of project RAG.
+- Learning Hub Batch 2 behavior: `catalog/projects.yaml` now records project traits for workflow, analytics engine, visualization, and AI data access. The assistant uses those traits for high-confidence portfolio architecture answers such as SQL-first medallion project lists.
 
 ## Verification History
 
@@ -116,12 +117,13 @@ Imported from `C:\Users\Nitro\aicvgen\.tmp\agent-skills\skills`:
 - 2026-06-19: Docker Desktop was started and the Learning Hub Docker path was verified. `docker compose build learning-hub` passed, `docker compose run --rm indexer` built a local TF-IDF index with 104 documents and 464 chunks, `docker compose up -d learning-hub` started `365ds-demo-projects-learning-hub-1`, `http://localhost:8507` returned HTTP 200, and `docker compose exec -T learning-hub python -m pytest apps/learning-hub/tests -q` returned 23 passed.
 - 2026-06-19: Batch 0 baseline for the conversational memory and LangGraph upgrade passed: `.\.venv-365ds\Scripts\python.exe -m pytest apps\learning-hub\tests -q` returned 23 passed; `py_compile` passed for the Learning Hub entrypoint and assistant/runtime modules; `build_index.py --check` reported 104 documents and 464 chunks; `docker compose ps` showed the `learning-hub` service up on port 8507 after escalation. Local venv check reported `langgraph False`, so the LangGraph dependency still needs to be added/installed for Batch 3.
 - 2026-06-19: Learning Hub Batch 1 added session-only conversation memory and runtime self-awareness to the custom assistant. Verification: focused assistant tests returned 9 passed; full hub tests returned 26 passed; `py_compile` passed for `streamlit_app.py` and `assistant.py`; `build_index.py --check` still reported 104 documents and 464 chunks.
+- 2026-06-19: Learning Hub Batch 2 added structured project traits and deterministic SQL-first medallion routing. Verification: focused catalog/assistant tests returned 14 passed; full hub tests returned 28 passed; `py_compile` passed for `streamlit_app.py`, `assistant.py`, and `catalog.py`; `build_index.py --check` still reported 104 documents and 464 chunks.
 
 - 2026-06-17: Added projects/real-estate-market-analysis/reports/real_estate_market_analysis_star_b_retrospective.md as an internal STAR-B proof report for the Real Estate project; no pipeline rerun or source data changes were performed.
 
 ## Next Steps
 
-- Implement Batch 2: structured project traits and high-confidence routing for portfolio architecture questions.
+- Implement Batch 3: optional LangGraph backend behind the existing Learning Hub assistant interface.
 - Keep the Docker-served Learning Hub at `http://localhost:8507` in mind during smoke checks; stop with `docker compose down` when no longer needed.
 
 ## Deferred Missions

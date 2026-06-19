@@ -2,6 +2,11 @@ projects:
   - slug: real-estate-market-analysis
     title: Real Estate Market Analysis
     summary: Python-first market analysis with DuckDB medallion layers and Streamlit reporting.
+    traits:
+      workflow: python_first_medallion
+      analytics_engine: duckdb
+      visualization: streamlit
+      ai_data_access: gold_marts_only
     project_dir: projects/real-estate-market-analysis
     instruction_path: project-instructions/Real Estate Market Analysis with Python Project Instructions.md
     readme_path: projects/real-estate-market-analysis/README.md
@@ -31,6 +36,11 @@ projects:
   - slug: user-journey-analysis
     title: User Journey Analysis
     summary: Python journey helper functions with DuckDB marts for page paths, sequences, and quiz support.
+    traits:
+      workflow: python_functions_medallion
+      analytics_engine: duckdb
+      visualization: streamlit
+      ai_data_access: gold_marts_only
     project_dir: projects/user-journey-analysis
     instruction_path: project-instructions/User Journey Analysis in Python Project Instructions.md
     readme_path: projects/user-journey-analysis/README.md
@@ -57,6 +67,11 @@ projects:
   - slug: checkout-flow-optimization
     title: Checkout Flow Optimization
     summary: SQL-first checkout funnel analysis with monthly success, abandonment, and error marts.
+    traits:
+      workflow: sql_first_medallion
+      analytics_engine: duckdb
+      visualization: streamlit
+      ai_data_access: gold_marts_only
     project_dir: projects/checkout-flow-optimization
     instruction_path: project-instructions/Checkout Flow Optimization Analysis with SQL and Tableau Project Instructions.md
     readme_path: projects/checkout-flow-optimization/README.md
@@ -84,6 +99,11 @@ projects:
   - slug: customer-engagement-analysis
     title: Customer Engagement Analysis
     summary: SQL-first customer engagement project with course, country, onboarding, and monthly engagement marts.
+    traits:
+      workflow: sql_first_medallion
+      analytics_engine: duckdb
+      visualization: streamlit
+      ai_data_access: gold_marts_only
     project_dir: projects/customer-engagement-analysis
     instruction_path: project-instructions/Customer Engagement Analysis with SQL and Tableau Project Instructions.md
     readme_path: projects/customer-engagement-analysis/README.md
@@ -111,6 +131,11 @@ projects:
   - slug: tracking-user-engagement
     title: Tracking User Engagement
     summary: SQL-first Q2 engagement comparison with Python statistical tests and certificate prediction.
+    traits:
+      workflow: sql_first_medallion
+      analytics_engine: duckdb
+      visualization: streamlit
+      ai_data_access: gold_marts_only
     project_dir: projects/tracking-user-engagement
     instruction_path: project-instructions/Tracking User Engagement with SQL, Excel, and Python Project Instructions.md
     readme_path: projects/tracking-user-engagement/README.md
