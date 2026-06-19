@@ -39,6 +39,7 @@
 - `projects/user-journey-analysis/`: second implemented 365DS project, with required journey helper functions, DuckDB Bronze/Silver/Gold scripts, SQL quality checks, docs, report, and a Streamlit dashboard reading Gold marts only.
 - `projects/checkout-flow-optimization/`: third implemented 365DS project, with SQL-first DuckDB Bronze/Silver/Gold layers, MySQL dump ingestion, SQL quality checks, generated business report, and a Streamlit dashboard reading Gold marts only.
 - `projects/customer-engagement-analysis/`: fourth implemented 365DS project, with SQL-first DuckDB Bronze/Silver/Gold layers, multi-insert MySQL dump parsing, SQL quality checks, generated business report, and a Streamlit dashboard reading Gold marts only.
+- `projects/tracking-user-engagement/`: fifth implemented 365DS project, with SQL-first DuckDB Bronze/Silver/Gold layers, multi-insert MySQL dump parsing, Python-generated statistical/model Gold marts, generated business report, and a Streamlit dashboard reading Gold marts only.
 
 ## Imported Skills
 
@@ -77,6 +78,7 @@ Imported from `C:\Users\Nitro\aicvgen\.tmp\agent-skills\skills`:
 - Generated project warehouses, caches, and Streamlit runtime outputs are ignored and should not be committed.
 - Some sources require external tools or format-specific handling, such as Tableau `.twbx`, PDF sketches, and notebooks.
 - The visible `agent-skills/` directory remains the canonical edit target; hidden paths are local junction aliases.
+- Tracking User Engagement translates Excel tasks into reproducible Python/Gold outputs; no committed workbook is required unless the user explicitly asks for one.
 
 ## Verification History
 
@@ -96,13 +98,14 @@ Imported from `C:\Users\Nitro\aicvgen\.tmp\agent-skills\skills`:
 - 2026-06-17: Added `projects/user-journey-analysis/` with required Python journey functions, DuckDB Bronze/Silver/Gold pipeline, SQL quality checks, report, and Streamlit dashboard; static compile, runtime pipeline, and quiz regression checks passed.
 - 2026-06-17: Added `projects/checkout-flow-optimization/` with SQL-first DuckDB medallion layers, MySQL dump parser, checkout marts, report, and Streamlit dashboard; static compile, runtime pipeline, and SQL quality checks passed.
 - 2026-06-19: Added `projects/customer-engagement-analysis/` with SQL-first DuckDB medallion layers, multi-block MySQL dump parsing, engagement marts, report, and Streamlit dashboard; static compile, runtime pipeline, and SQL quality checks passed.
+- 2026-06-19: Added `projects/tracking-user-engagement/` with SQL-first DuckDB medallion layers, multi-block MySQL dump parsing, Q2 paid/free cohorts, 99th-percentile outlier filtering, t-tests, certificate correlation, linear regression, probability marts, report, and Streamlit dashboard; static compile, runtime pipeline, and quality checks passed.
 
 - 2026-06-17: Added projects/real-estate-market-analysis/reports/real_estate_market_analysis_star_b_retrospective.md as an internal STAR-B proof report for the Real Estate project; no pipeline rerun or source data changes were performed.
 
 ## Next Steps
 
-- Review the Customer Engagement Streamlit dashboard and generated report; Question 10 is truncated in the converted brief, so the report records the data-derived paid/free average-minutes ratio.
-- Pick the next remaining project after Customer Engagement; likely Tracking User Engagement, using Python orchestration plus SQL Bronze/Silver/Gold where transformations are relational.
+- Review the Tracking User Engagement Streamlit dashboard and generated report.
+- Plan the remaining LangChain chatbot project last; it needs a separate environment and an OpenAI API key, unlike the completed analytics projects.
 
 ## Deferred Missions
 
@@ -110,4 +113,4 @@ Imported from `C:\Users\Nitro\aicvgen\.tmp\agent-skills\skills`:
 
 ## Recent Delta
 
-- 2026-06-19: Added repo-local agent skill package and starter memory artifacts; expanded it with adapted analytics SQL, dashboard storytelling, and data quality contract skills from the requested GitHub sources; fixed hidden `.agents`/`.codex` usability via junctions; added starter Python requirements files for analytics and LangChain work; committed the baseline and DuckDB/Streamlit stack; completed Real Estate, User Journey, Checkout Flow Optimization, and Customer Engagement as DuckDB/Streamlit projects.
+- 2026-06-19: Added repo-local agent skill package and starter memory artifacts; expanded it with adapted analytics SQL, dashboard storytelling, and data quality contract skills from the requested GitHub sources; fixed hidden `.agents`/`.codex` usability via junctions; added starter Python requirements files for analytics and LangChain work; committed the baseline and DuckDB/Streamlit stack; completed Real Estate, User Journey, Checkout Flow Optimization, Customer Engagement, and Tracking User Engagement as DuckDB/Streamlit projects.

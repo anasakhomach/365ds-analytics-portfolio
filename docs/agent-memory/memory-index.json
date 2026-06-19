@@ -11,6 +11,7 @@
     "Raw source-datasets files should remain immutable.",
     "DuckDB is canonical and Streamlit replaces Tableau for repo dashboards unless the user asks otherwise.",
     "For relational 365DS projects, Python orchestrates while SQL files define Bronze/Silver/Gold transformations where practical.",
-    "Customer Engagement uses multi-block MySQL INSERT parsing; keep this capability for larger SQL dumps."
+    "Customer Engagement and Tracking User Engagement use multi-block MySQL INSERT parsing; keep this capability for larger SQL dumps.",
+    "Tracking User Engagement translates Excel analysis steps into reproducible Python/Gold outputs unless a workbook is explicitly requested."
   ]
 }

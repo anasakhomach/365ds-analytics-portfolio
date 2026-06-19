@@ -48,3 +48,10 @@
 - The source MySQL dump requires multi-block INSERT parsing for `365_student_learning`; Bronze records insert-block counts so the parser behavior is quality-checked.
 - Silver creates subscription windows, country labels from installed Babel data, and the course-required `student_engagement` extract with 81,532 rows.
 - Gold produces course performance, monthly engagement, onboarding, country funnel, KPI, quiz, and report marts; the dashboard reads Gold only.
+
+## M7 - Tracking User Engagement Added
+
+- Tracking User Engagement was implemented in `projects/tracking-user-engagement/` as a SQL-first DuckDB project with Python statistical/model outputs.
+- Bronze parses the MySQL dump with multi-block INSERT support; Silver creates subscription windows, Q2 watched-minute cohorts, paid/free flags, and certificate-minute extracts.
+- Gold keeps relational marts in SQL, then Python creates 99th-percentile filtered datasets, confidence interval statistics, t-test outputs, certificate correlation, linear regression, probability, KPI, quiz, and report tables.
+- The Streamlit dashboard reads Gold only and covers Q2 engagement, distribution/outliers, statistical tests, and certificate prediction.
