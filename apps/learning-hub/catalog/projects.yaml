@@ -1,0 +1,139 @@
+projects:
+  - slug: real-estate-market-analysis
+    title: Real Estate Market Analysis
+    summary: Python-first market analysis with DuckDB medallion layers and Streamlit reporting.
+    project_dir: projects/real-estate-market-analysis
+    instruction_path: project-instructions/Real Estate Market Analysis with Python Project Instructions.md
+    readme_path: projects/real-estate-market-analysis/README.md
+    dashboard_path: projects/real-estate-market-analysis/dashboard/app.py
+    warehouse_path: projects/real-estate-market-analysis/warehouse.duckdb
+    docs:
+      - projects/real-estate-market-analysis/docs/data_flow.md
+      - projects/real-estate-market-analysis/docs/naming_conventions.md
+    reports:
+      - projects/real-estate-market-analysis/reports/real_estate_market_analysis_report.md
+    gold_tables:
+      - mart_age_intervals
+      - mart_building_performance
+      - mart_correlation_metrics
+      - mart_country_performance
+      - mart_monthly_revenue
+      - mart_price_intervals
+      - mart_property_transactions
+      - mart_state_distribution
+      - mart_summary_kpis
+      - mart_yearly_sales_by_building
+    starter_questions:
+      - What business questions does the Real Estate project answer?
+      - Which building generated the most revenue?
+      - How is customer age calculated in the pipeline?
+
+  - slug: user-journey-analysis
+    title: User Journey Analysis
+    summary: Python journey helper functions with DuckDB marts for page paths, sequences, and quiz support.
+    project_dir: projects/user-journey-analysis
+    instruction_path: project-instructions/User Journey Analysis in Python Project Instructions.md
+    readme_path: projects/user-journey-analysis/README.md
+    dashboard_path: projects/user-journey-analysis/dashboard/app.py
+    warehouse_path: projects/user-journey-analysis/warehouse.duckdb
+    docs:
+      - projects/user-journey-analysis/docs/data_flow.md
+      - projects/user-journey-analysis/docs/naming_conventions.md
+    reports:
+      - projects/user-journey-analysis/reports/user_journey_analysis_report.md
+    gold_tables:
+      - mart_journey_length
+      - mart_page_count
+      - mart_page_destinations
+      - mart_page_presence
+      - mart_page_sequences
+      - mart_quiz_answers
+      - mart_summary_kpis
+    starter_questions:
+      - What public Python functions does the project expose?
+      - What is the most common four-page sequence?
+      - How are duplicate pages removed from journeys?
+
+  - slug: checkout-flow-optimization
+    title: Checkout Flow Optimization
+    summary: SQL-first checkout funnel analysis with monthly success, abandonment, and error marts.
+    project_dir: projects/checkout-flow-optimization
+    instruction_path: project-instructions/Checkout Flow Optimization Analysis with SQL and Tableau Project Instructions.md
+    readme_path: projects/checkout-flow-optimization/README.md
+    dashboard_path: projects/checkout-flow-optimization/dashboard/app.py
+    warehouse_path: projects/checkout-flow-optimization/warehouse.duckdb
+    docs:
+      - projects/checkout-flow-optimization/docs/data_flow.md
+      - projects/checkout-flow-optimization/docs/naming_conventions.md
+    reports:
+      - projects/checkout-flow-optimization/reports/checkout_flow_optimization_report.md
+    gold_tables:
+      - mart_checkout_errors
+      - mart_daily_checkout_steps
+      - mart_device_distribution
+      - mart_error_rankings
+      - mart_monthly_checkout
+      - mart_monthly_error_device
+      - mart_quiz_answers
+      - mart_summary_kpis
+    starter_questions:
+      - What changed in checkout success from July 2022 to January 2023?
+      - Which checkout errors are most common?
+      - How does the dashboard use Gold marts only?
+
+  - slug: customer-engagement-analysis
+    title: Customer Engagement Analysis
+    summary: SQL-first customer engagement project with course, country, onboarding, and monthly engagement marts.
+    project_dir: projects/customer-engagement-analysis
+    instruction_path: project-instructions/Customer Engagement Analysis with SQL and Tableau Project Instructions.md
+    readme_path: projects/customer-engagement-analysis/README.md
+    dashboard_path: projects/customer-engagement-analysis/dashboard/app.py
+    warehouse_path: projects/customer-engagement-analysis/warehouse.duckdb
+    docs:
+      - projects/customer-engagement-analysis/docs/data_flow.md
+      - projects/customer-engagement-analysis/docs/naming_conventions.md
+    reports:
+      - projects/customer-engagement-analysis/reports/customer_engagement_analysis_report.md
+    gold_tables:
+      - mart_country_minutes
+      - mart_country_registered
+      - mart_course_performance
+      - mart_monthly_engagement
+      - mart_monthly_registrations
+      - mart_quiz_answers
+      - mart_student_engagement
+      - mart_summary_kpis
+    starter_questions:
+      - Which course is second by total minutes watched?
+      - Which countries lead registrations and minutes watched?
+      - How is paid student engagement calculated?
+
+  - slug: tracking-user-engagement
+    title: Tracking User Engagement
+    summary: SQL-first Q2 engagement comparison with Python statistical tests and certificate prediction.
+    project_dir: projects/tracking-user-engagement
+    instruction_path: project-instructions/Tracking User Engagement with SQL, Excel, and Python Project Instructions.md
+    readme_path: projects/tracking-user-engagement/README.md
+    dashboard_path: projects/tracking-user-engagement/dashboard/app.py
+    warehouse_path: projects/tracking-user-engagement/warehouse.duckdb
+    docs:
+      - projects/tracking-user-engagement/docs/data_flow.md
+      - projects/tracking-user-engagement/docs/naming_conventions.md
+    reports:
+      - projects/tracking-user-engagement/reports/tracking_user_engagement_report.md
+    gold_tables:
+      - mart_certificates_minutes
+      - mart_correlation
+      - mart_hypothesis_tests
+      - mart_q2_engagement_no_outliers
+      - mart_q2_engagement_segments
+      - mart_q2_segment_statistics
+      - mart_q2_segment_summary_raw
+      - mart_quiz_answers
+      - mart_regression
+      - mart_summary_kpis
+      - mart_watch_probability
+    starter_questions:
+      - Did free-plan engagement increase in Q2 2022?
+      - What is the R-squared value for certificate prediction?
+      - Why are Q2 2021 and Q2 2022 watching events dependent?

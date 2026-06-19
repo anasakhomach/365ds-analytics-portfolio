@@ -1,0 +1,35 @@
+services:
+  learning-hub:
+    build:
+      context: .
+      dockerfile: Dockerfile.learning-hub
+    image: 365ds-learning-hub:local
+    ports:
+      - "8507:8501"
+    environment:
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      LEARNING_HUB_INDEX_DIR: /app/apps/learning-hub/.index
+      LEARNING_HUB_CHROMA_DIR: /app/apps/learning-hub/.chroma
+    volumes:
+      - learning_hub_index:/app/apps/learning-hub/.index
+      - learning_hub_chroma:/app/apps/learning-hub/.chroma
+
+  indexer:
+    build:
+      context: .
+      dockerfile: Dockerfile.learning-hub
+    image: 365ds-learning-hub:local
+    profiles:
+      - indexer
+    command: ["python", "apps/learning-hub/scripts/build_index.py"]
+    environment:
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      LEARNING_HUB_INDEX_DIR: /app/apps/learning-hub/.index
+      LEARNING_HUB_CHROMA_DIR: /app/apps/learning-hub/.chroma
+    volumes:
+      - learning_hub_index:/app/apps/learning-hub/.index
+      - learning_hub_chroma:/app/apps/learning-hub/.chroma
+
+volumes:
+  learning_hub_index:
+  learning_hub_chroma:

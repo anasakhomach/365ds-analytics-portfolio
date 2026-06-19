@@ -55,3 +55,10 @@
 - Bronze parses the MySQL dump with multi-block INSERT support; Silver creates subscription windows, Q2 watched-minute cohorts, paid/free flags, and certificate-minute extracts.
 - Gold keeps relational marts in SQL, then Python creates 99th-percentile filtered datasets, confidence interval statistics, t-test outputs, certificate correlation, linear regression, probability, KPI, quiz, and report tables.
 - The Streamlit dashboard reads Gold only and covers Q2 engagement, distribution/outliers, statistical tests, and certificate prediction.
+
+## M8 - Portfolio Learning Hub Added
+
+- The standalone LangChain chatbot idea was upgraded into `apps/learning-hub/`, one cross-project portfolio assistant for all five completed projects.
+- The hub uses a YAML project catalog, indexes docs/reports/instructions/code/Gold table summaries, and provides a citation-first local retrieval fallback that works without an API key.
+- A safe DuckDB tool reads only approved `gold.*` marts from each project warehouse and rejects writes, lower-layer access, unapproved tables, and multi-statement SQL.
+- Docker support was added from v1 via `Dockerfile.learning-hub` and `docker-compose.yml`; local Streamlit verification passed, while Docker image build requires Docker Desktop's Linux engine to be running.

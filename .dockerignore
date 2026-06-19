@@ -1,3 +1,4 @@
+.git/
 .agents/
 .codex/
 agent-hidden-roots/
@@ -8,25 +9,20 @@ agent-hidden-roots/
 __pycache__/
 *.pyc
 
-.ipynb_checkpoints/
-
 .env
 .env.*
 !.env.example
 
-*.duckdb
-*.db
-*.sqlite
-*.sqlite3
-
-intro-to-tableau/
-chroma/
-.chroma/
 apps/learning-hub/.index/
 apps/learning-hub/.chroma/
 apps/learning-hub/.cache/
 apps/learning-hub/.tmp*/
 apps/learning-hub/logs/
+
+source-datasets/
+intro-to-tableau/
+chroma/
+.chroma/
 
 .DS_Store
 Thumbs.db

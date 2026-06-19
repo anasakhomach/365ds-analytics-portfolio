@@ -35,6 +35,8 @@
 - `docs/agent-memory/`: durable memory package for future handoffs.
 - `requirements-analytics.txt`: common Python/Jupyter analytics environment for pandas, plotting, stats, and ML.
 - `requirements-langchain.txt`: pinned LangChain/OpenAI/Chroma environment for the chatbot project.
+- `requirements-learning-hub.txt`: Docker/local dependency set for the portfolio Learning Hub, including Streamlit, DuckDB, sklearn, pytest, and optional modern LangChain/OpenAI/Chroma packages.
+- `apps/learning-hub/`: cross-project Streamlit portfolio hub with project catalog, local RAG-style indexer, safe read-only DuckDB Gold query tool, AI helper, quiz/data coach, and Docker support.
 - `projects/real-estate-market-analysis/`: first implemented 365DS project, with DuckDB Bronze/Silver/Gold scripts, SQL quality checks, docs, and a Streamlit dashboard reading Gold marts only.
 - `projects/user-journey-analysis/`: second implemented 365DS project, with required journey helper functions, DuckDB Bronze/Silver/Gold scripts, SQL quality checks, docs, report, and a Streamlit dashboard reading Gold marts only.
 - `projects/checkout-flow-optimization/`: third implemented 365DS project, with SQL-first DuckDB Bronze/Silver/Gold layers, MySQL dump ingestion, SQL quality checks, generated business report, and a Streamlit dashboard reading Gold marts only.
@@ -79,6 +81,8 @@ Imported from `C:\Users\Nitro\aicvgen\.tmp\agent-skills\skills`:
 - Some sources require external tools or format-specific handling, such as Tableau `.twbx`, PDF sketches, and notebooks.
 - The visible `agent-skills/` directory remains the canonical edit target; hidden paths are local junction aliases.
 - Tracking User Engagement translates Excel tasks into reproducible Python/Gold outputs; no committed workbook is required unless the user explicitly asks for one.
+- The Learning Hub is additive. It does not restructure the five completed projects; it indexes their docs/code/reports and reads approved `gold.*` marts only.
+- Docker Compose is configured for the Learning Hub, but Docker Desktop's Linux engine must be running for image build/run verification.
 
 ## Verification History
 
@@ -99,13 +103,15 @@ Imported from `C:\Users\Nitro\aicvgen\.tmp\agent-skills\skills`:
 - 2026-06-17: Added `projects/checkout-flow-optimization/` with SQL-first DuckDB medallion layers, MySQL dump parser, checkout marts, report, and Streamlit dashboard; static compile, runtime pipeline, and SQL quality checks passed.
 - 2026-06-19: Added `projects/customer-engagement-analysis/` with SQL-first DuckDB medallion layers, multi-block MySQL dump parsing, engagement marts, report, and Streamlit dashboard; static compile, runtime pipeline, and SQL quality checks passed.
 - 2026-06-19: Added `projects/tracking-user-engagement/` with SQL-first DuckDB medallion layers, multi-block MySQL dump parsing, Q2 paid/free cohorts, 99th-percentile outlier filtering, t-tests, certificate correlation, linear regression, probability marts, report, and Streamlit dashboard; static compile, runtime pipeline, and quality checks passed.
+- 2026-06-19: Added `apps/learning-hub/` with a five-project catalog, local TF-IDF RAG-style indexer, citation-first assistant fallback, safe read-only DuckDB Gold query tool, multipage Streamlit hub, Dockerfile, Compose stack, and architecture docs. Local tests passed; Streamlit responded on `http://localhost:8507`; Docker build was blocked because Docker Desktop's Linux engine was not running.
 
 - 2026-06-17: Added projects/real-estate-market-analysis/reports/real_estate_market_analysis_star_b_retrospective.md as an internal STAR-B proof report for the Real Estate project; no pipeline rerun or source data changes were performed.
 
 ## Next Steps
 
-- Review the Tracking User Engagement Streamlit dashboard and generated report.
-- Plan the remaining LangChain chatbot project last; it needs a separate environment and an OpenAI API key, unlike the completed analytics projects.
+- Review the Learning Hub at `http://localhost:8507`.
+- Start Docker Desktop, then rerun `docker compose build learning-hub` and `docker compose run --rm indexer` for container verification.
+- Optional later enhancement: wire OpenAI/Chroma generation into the existing Learning Hub contracts.
 
 ## Deferred Missions
 
@@ -113,4 +119,4 @@ Imported from `C:\Users\Nitro\aicvgen\.tmp\agent-skills\skills`:
 
 ## Recent Delta
 
-- 2026-06-19: Added repo-local agent skill package and starter memory artifacts; expanded it with adapted analytics SQL, dashboard storytelling, and data quality contract skills from the requested GitHub sources; fixed hidden `.agents`/`.codex` usability via junctions; added starter Python requirements files for analytics and LangChain work; committed the baseline and DuckDB/Streamlit stack; completed Real Estate, User Journey, Checkout Flow Optimization, Customer Engagement, and Tracking User Engagement as DuckDB/Streamlit projects.
+- 2026-06-19: Added repo-local agent skill package and starter memory artifacts; expanded it with adapted analytics SQL, dashboard storytelling, and data quality contract skills from the requested GitHub sources; fixed hidden `.agents`/`.codex` usability via junctions; added starter Python requirements files for analytics and LangChain work; committed the baseline and DuckDB/Streamlit stack; completed Real Estate, User Journey, Checkout Flow Optimization, Customer Engagement, and Tracking User Engagement as DuckDB/Streamlit projects; added a Dockerized Learning Hub layer across all five projects.
