@@ -147,7 +147,12 @@ def ai_learning_helper() -> None:
 
     try:
         llm_client = create_llm_client(runtime)
-        assistant = LearningAssistant(index=cached_index(), projects=cached_projects(), llm_client=llm_client)
+        assistant = LearningAssistant(
+            index=cached_index(),
+            projects=cached_projects(),
+            llm_client=llm_client,
+            runtime=runtime,
+        )
     except FileNotFoundError:
         st.error("Build the local search index before using the assistant.")
         st.code(r".\.venv-365ds\Scripts\python.exe apps\learning-hub\scripts\build_index.py")
@@ -182,11 +187,12 @@ def ai_learning_helper() -> None:
     prompt = st.session_state.pop("learning_hub_pending_prompt", None)
     prompt = prompt or st.chat_input("Ask about the projects, architecture, quiz answers, or Gold marts")
     if prompt:
+        history = list(st.session_state.learning_hub_messages)
         st.session_state.learning_hub_messages.append({"role": "user", "content": prompt})
         with st.chat_message("user"):
             st.markdown(prompt)
 
-        response_shell, chunks = assistant.stream_answer(prompt, project_slug=slug)
+        response_shell, chunks = assistant.stream_answer(prompt, project_slug=slug, history=history)
         with st.chat_message("assistant"):
             answer = st.write_stream(chunks)
             if response_shell.data_result:

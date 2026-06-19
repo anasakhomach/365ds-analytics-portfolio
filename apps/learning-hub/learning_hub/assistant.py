@@ -3,12 +3,14 @@ from __future__ import annotations
 from dataclasses import dataclass
 from pathlib import Path
 from textwrap import shorten
+from typing import Sequence
 
 from .catalog import Project, get_project, load_catalog
 from .data_tool import GoldQueryTool, QueryResult, UnsafeQueryError
 from .indexing import LocalSearchIndex, SearchResult, load_local_index
 from .llm_client import LLMClient, Message
 from .paths import DEFAULT_INDEX_DIR
+from .settings import AIRuntime
 
 
 @dataclass(frozen=True)
@@ -43,14 +45,21 @@ class LearningAssistant:
         projects: list[Project] | None = None,
         index_dir: Path = DEFAULT_INDEX_DIR,
         llm_client: LLMClient | None = None,
+        runtime: AIRuntime | None = None,
     ) -> None:
         self.projects = projects or load_catalog()
         self.index = index or load_local_index(index_dir)
         self.data_tool = data_tool or GoldQueryTool(self.projects)
         self.llm_client = llm_client
+        self.runtime = runtime
 
-    def answer(self, question: str, project_slug: str | None = None) -> AssistantResponse:
-        plan = self.plan_answer(question, project_slug=project_slug)
+    def answer(
+        self,
+        question: str,
+        project_slug: str | None = None,
+        history: Sequence[Message] | None = None,
+    ) -> AssistantResponse:
+        plan = self.plan_answer(question, project_slug=project_slug, history=history)
         if self.llm_client and plan.messages:
             try:
                 answer = self.llm_client.complete(list(plan.messages))
@@ -68,8 +77,9 @@ class LearningAssistant:
         self,
         question: str,
         project_slug: str | None = None,
+        history: Sequence[Message] | None = None,
     ) -> tuple[AssistantResponse, object]:
-        plan = self.plan_answer(question, project_slug=project_slug)
+        plan = self.plan_answer(question, project_slug=project_slug, history=history)
         shell = AssistantResponse(
             answer="",
             citations=plan.fallback_response.citations,
@@ -87,14 +97,24 @@ class LearningAssistant:
 
         return shell, chunks()
 
-    def plan_answer(self, question: str, project_slug: str | None = None) -> AssistantPlan:
+    def plan_answer(
+        self,
+        question: str,
+        project_slug: str | None = None,
+        history: Sequence[Message] | None = None,
+    ) -> AssistantPlan:
         question = question.strip()
         if not question:
             response = AssistantResponse(answer="Ask a question about the portfolio projects.", citations=())
             return AssistantPlan(fallback_response=response)
 
+        runtime_response = self._try_runtime_route(question)
+        if runtime_response:
+            return AssistantPlan(fallback_response=runtime_response)
+
         data_response = self._try_data_route(question, project_slug)
-        results = self.index.search(question, project_slug=project_slug, limit=6)
+        search_query = self._search_query(question, history)
+        results = self.index.search(search_query, project_slug=project_slug, limit=6)
         if not results and not data_response:
             scope = f" for `{project_slug}`" if project_slug else ""
             response = AssistantResponse(
@@ -107,7 +127,7 @@ class LearningAssistant:
         if data_response and not results:
             return AssistantPlan(
                 fallback_response=data_response,
-                messages=tuple(self._llm_messages(question, [], data_response)),
+                messages=tuple(self._llm_messages(question, [], data_response, history)),
                 llm_route="llm_data",
             )
 
@@ -121,9 +141,52 @@ class LearningAssistant:
         )
         return AssistantPlan(
             fallback_response=fallback,
-            messages=tuple(self._llm_messages(question, results, data_response)),
+            messages=tuple(self._llm_messages(question, results, data_response, history)),
             llm_route="llm_data" if data_response else "llm_rag",
         )
+
+    def _try_runtime_route(self, question: str) -> AssistantResponse | None:
+        lower = question.lower()
+        runtime_phrases = (
+            "which model are you",
+            "what model are you",
+            "what model is this",
+            "are you a live model",
+            "are you live",
+            "local version",
+            "local model",
+            "live model",
+            "api key",
+            "key source",
+            "which provider",
+            "what provider",
+            "runtime",
+        )
+        if not any(phrase in lower for phrase in runtime_phrases):
+            return None
+
+        if not self.runtime:
+            return AssistantResponse(
+                answer=(
+                    "I am the 365DS Portfolio Learning Helper. This assistant instance does not "
+                    "have runtime metadata attached, so I cannot report the active provider or model."
+                ),
+                citations=(),
+                route="runtime",
+            )
+
+        status = "live model synthesis" if self.runtime.live_enabled else "local retrieval fallback"
+        key_source = self.runtime.api_key_source or "none"
+        answer = (
+            "I am the 365DS Portfolio Learning Helper, not one of the project ML models. "
+            f"Current runtime: {status}. "
+            f"Provider: {self.runtime.provider}. "
+            f"Mode: {self.runtime.effective_mode}. "
+            f"Chat model: {self.runtime.chat_model}. "
+            f"Key source: {key_source}. "
+            f"Base URL: {self.runtime.base_url}."
+        )
+        return AssistantResponse(answer=answer, citations=(), route="runtime")
 
     def _try_data_route(self, question: str, project_slug: str | None) -> AssistantResponse | None:
         if not project_slug:
@@ -219,6 +282,7 @@ class LearningAssistant:
         question: str,
         results: list[SearchResult],
         data_response: AssistantResponse | None,
+        history: Sequence[Message] | None,
     ) -> list[Message]:
         context_lines: list[str] = []
         for index, result in enumerate(results[:6], start=1):
@@ -236,14 +300,16 @@ class LearningAssistant:
         if data_response and data_response.data_result:
             data_block = response_table_markdown(data_response.data_result)
 
+        history_block = self._history_block(history)
         system = (
             "You are the 365DS Portfolio Learning Helper. Answer as a practical tutor for "
             "analytics learners and portfolio reviewers. Cite sources using the provided "
             "source labels or Gold table names. Cite sources; do not invent facts. If the "
-            "provided context and approved data do not answer the question, say: "
+            "recent conversation, provided context, and approved data do not answer the question, say: "
             "\"I don't know from the indexed project sources.\""
         )
         user = (
+            f"Recent conversation:\n{history_block or 'No previous conversation in this session.'}\n\n"
             f"Question:\n{question}\n\n"
             f"Retrieved context:\n{chr(10).join(context_lines).strip() or 'No retrieved text context.'}\n\n"
             f"Approved Gold data:\n{data_block or 'No Gold data result.'}"
@@ -252,6 +318,43 @@ class LearningAssistant:
             {"role": "system", "content": system},
             {"role": "user", "content": user},
         ]
+
+    def _search_query(self, question: str, history: Sequence[Message] | None) -> str:
+        history_block = self._history_block(history, max_turns=4)
+        if not history_block:
+            return question
+
+        lower = question.lower()
+        follow_up_markers = (
+            " it ",
+            " that ",
+            " this ",
+            " they ",
+            " them ",
+            " those ",
+            " role ",
+            " mean ",
+            " also ",
+            " about ",
+        )
+        starts_like_follow_up = lower.startswith(("does ", "do ", "is ", "are ", "and ", "also ", "what about", "how about"))
+        if starts_like_follow_up or any(marker in f" {lower} " for marker in follow_up_markers):
+            return f"{history_block}\n\nFollow-up question: {question}"
+        return question
+
+    def _history_block(self, history: Sequence[Message] | None, max_turns: int = 6) -> str:
+        if not history:
+            return ""
+        turns: list[str] = []
+        for message in list(history)[-max_turns:]:
+            role = str(message.get("role", "user")).strip() or "user"
+            if role not in {"user", "assistant"}:
+                continue
+            content = str(message.get("content", "")).strip()
+            if not content:
+                continue
+            turns.append(f"{role}: {shorten(' '.join(content.split()), width=500, placeholder='...')}")
+        return "\n".join(turns)
 
     def _with_llm_fallback_note(self, response: AssistantResponse, exc: Exception) -> AssistantResponse:
         note = (
