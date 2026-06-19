@@ -16,9 +16,17 @@ def test_settings_default_to_gateway_but_fall_back_without_key() -> None:
 
     assert settings.mode == "gateway"
     assert settings.provider == "litellm"
+    assert settings.agent_backend == "custom"
     assert runtime.effective_mode == "local"
     assert runtime.live_enabled is False
     assert runtime.api_key is None
+
+
+def test_agent_backend_accepts_custom_langgraph_and_auto() -> None:
+    assert load_ai_settings({"LEARNING_HUB_AGENT_BACKEND": "custom"}).agent_backend == "custom"
+    assert load_ai_settings({"LEARNING_HUB_AGENT_BACKEND": "langgraph"}).agent_backend == "langgraph"
+    assert load_ai_settings({"LEARNING_HUB_AGENT_BACKEND": "auto"}).agent_backend == "auto"
+    assert load_ai_settings({"LEARNING_HUB_AGENT_BACKEND": "surprise"}).agent_backend == "custom"
 
 
 def test_learning_hub_api_key_takes_precedence_over_aliases() -> None:

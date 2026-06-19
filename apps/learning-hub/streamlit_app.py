@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from pathlib import Path
+from uuid import uuid4
 
 import pandas as pd
 import streamlit as st
@@ -145,6 +146,11 @@ def ai_learning_helper() -> None:
     slug = selected_project("Scope", include_all=True)
     runtime = runtime_controls()
 
+    if "learning_hub_messages" not in st.session_state:
+        st.session_state.learning_hub_messages = []
+    if "learning_hub_thread_id" not in st.session_state:
+        st.session_state.learning_hub_thread_id = f"learning-hub-{uuid4().hex}"
+
     try:
         llm_client = create_llm_client(runtime)
         assistant = LearningAssistant(
@@ -152,14 +158,13 @@ def ai_learning_helper() -> None:
             projects=cached_projects(),
             llm_client=llm_client,
             runtime=runtime,
+            agent_backend=runtime.settings.agent_backend,
+            thread_id=st.session_state.get("learning_hub_thread_id"),
         )
     except FileNotFoundError:
         st.error("Build the local search index before using the assistant.")
         st.code(r".\.venv-365ds\Scripts\python.exe apps\learning-hub\scripts\build_index.py")
         return
-
-    if "learning_hub_messages" not in st.session_state:
-        st.session_state.learning_hub_messages = []
 
     for message in st.session_state.learning_hub_messages:
         with st.chat_message(message["role"]):
@@ -181,6 +186,7 @@ def ai_learning_helper() -> None:
 
     if st.button("Clear chat", type="secondary"):
         st.session_state.learning_hub_messages = []
+        st.session_state.learning_hub_thread_id = f"learning-hub-{uuid4().hex}"
         st.session_state.pop("learning_hub_pending_prompt", None)
         st.rerun()
 

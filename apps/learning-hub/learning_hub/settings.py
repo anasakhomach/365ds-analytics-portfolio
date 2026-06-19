@@ -8,6 +8,7 @@ from typing import Mapping
 VALID_AI_MODES = {"local", "provider", "gateway"}
 VALID_PROVIDERS = {"openai_compatible", "openrouter", "litellm"}
 VALID_EMBEDDING_BACKENDS = {"local_tfidf", "chroma_openai_compatible"}
+VALID_AGENT_BACKENDS = {"custom", "langgraph", "auto"}
 
 
 @dataclass(frozen=True)
@@ -19,6 +20,7 @@ class AISettings:
     embedding_backend: str
     embedding_model: str
     enable_byok: bool
+    agent_backend: str
     owner_api_key: str | None
     owner_api_key_source: str | None
     site_url: str | None
@@ -65,6 +67,7 @@ def load_ai_settings(env: Mapping[str, str] | None = None) -> AISettings:
         embedding_backend=embedding_backend,
         embedding_model=values.get("LEARNING_HUB_EMBEDDING_MODEL") or "text-embedding-3-small",
         enable_byok=_truthy(values.get("LEARNING_HUB_ENABLE_BYOK"), default=True),
+        agent_backend=_choice(values.get("LEARNING_HUB_AGENT_BACKEND"), VALID_AGENT_BACKENDS, "custom"),
         owner_api_key=owner_key,
         owner_api_key_source=owner_source,
         site_url=values.get("LEARNING_HUB_SITE_URL"),

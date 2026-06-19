@@ -1,7 +1,10 @@
 from __future__ import annotations
 
+import importlib.util
 import sys
 from pathlib import Path
+
+import pytest
 
 APP_DIR = Path(__file__).resolve().parents[1]
 if str(APP_DIR) not in sys.path:
@@ -142,6 +145,43 @@ def test_sql_first_medallion_question_uses_project_traits(tmp_path: Path) -> Non
     assert "Tracking User Engagement" in response.answer
     assert "Real Estate Market Analysis" in response.answer
     assert "Python-first" in response.answer
+
+
+def test_langgraph_backend_matches_custom_for_structured_questions(tmp_path: Path) -> None:
+    if importlib.util.find_spec("langgraph") is None:
+        pytest.skip("langgraph is not installed")
+    build_local_index(tmp_path)
+    assistant = LearningAssistant(
+        index=load_local_index(tmp_path),
+        agent_backend="langgraph",
+        thread_id="test-langgraph-structured",
+    )
+
+    response = assistant.answer("Which projects use SQL-first medallion layers?")
+
+    assert response.route == "project_traits"
+    assert "Checkout Flow Optimization" in response.answer
+    assert "Tracking User Engagement" in response.answer
+
+
+def test_langgraph_backend_can_route_to_safe_gold_data(tmp_path: Path) -> None:
+    if importlib.util.find_spec("langgraph") is None:
+        pytest.skip("langgraph is not installed")
+    build_local_index(tmp_path)
+    assistant = LearningAssistant(
+        index=load_local_index(tmp_path),
+        agent_backend="langgraph",
+        thread_id="test-langgraph-data",
+    )
+
+    response = assistant.answer(
+        "What is the R-squared value and 1200 minute prediction?",
+        project_slug="tracking-user-engagement",
+    )
+
+    assert response.route == "data"
+    assert response.data_result is not None
+    assert "r_squared" in response.data_result.columns
 
 
 def test_assistant_streams_llm_answer_when_context_exists(tmp_path: Path) -> None:

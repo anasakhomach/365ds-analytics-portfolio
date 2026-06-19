@@ -1,9 +1,10 @@
 from __future__ import annotations
 
+import importlib.util
 from dataclasses import dataclass
 from pathlib import Path
 from textwrap import shorten
-from typing import Sequence
+from typing import Any, Sequence, TypedDict
 
 from .catalog import Project, get_project, load_catalog
 from .data_tool import GoldQueryTool, QueryResult, UnsafeQueryError
@@ -11,6 +12,19 @@ from .indexing import LocalSearchIndex, SearchResult, load_local_index
 from .llm_client import LLMClient, Message
 from .paths import DEFAULT_INDEX_DIR
 from .settings import AIRuntime
+
+
+VALID_AGENT_BACKENDS = {"custom", "langgraph", "auto"}
+
+
+class AgentGraphState(TypedDict, total=False):
+    question: str
+    project_slug: str | None
+    history: list[Message]
+    response: dict[str, Any]
+    data_response: dict[str, Any] | None
+    results: list[dict[str, Any]]
+    plan: dict[str, Any]
 
 
 @dataclass(frozen=True)
@@ -46,12 +60,17 @@ class LearningAssistant:
         index_dir: Path = DEFAULT_INDEX_DIR,
         llm_client: LLMClient | None = None,
         runtime: AIRuntime | None = None,
+        agent_backend: str = "custom",
+        thread_id: str | None = None,
     ) -> None:
         self.projects = projects or load_catalog()
         self.index = index or load_local_index(index_dir)
         self.data_tool = data_tool or GoldQueryTool(self.projects)
         self.llm_client = llm_client
         self.runtime = runtime
+        self.agent_backend = agent_backend if agent_backend in VALID_AGENT_BACKENDS else "custom"
+        self.thread_id = thread_id or "learning-hub-session"
+        self._langgraph_graph = None
 
     def answer(
         self,
@@ -103,6 +122,29 @@ class LearningAssistant:
         project_slug: str | None = None,
         history: Sequence[Message] | None = None,
     ) -> AssistantPlan:
+        if self._should_use_langgraph_backend():
+            try:
+                return self._langgraph_plan_answer(question, project_slug=project_slug, history=history)
+            except ImportError as exc:
+                if self.agent_backend == "langgraph":
+                    response = AssistantResponse(
+                        answer=(
+                            "The LangGraph agent backend was requested, but LangGraph is not installed "
+                            f"in this environment. Error type: {type(exc).__name__}."
+                        ),
+                        citations=(),
+                        route="agent_unavailable",
+                    )
+                    return AssistantPlan(fallback_response=response)
+
+        return self._custom_plan_answer(question, project_slug=project_slug, history=history)
+
+    def _custom_plan_answer(
+        self,
+        question: str,
+        project_slug: str | None = None,
+        history: Sequence[Message] | None = None,
+    ) -> AssistantPlan:
         question = question.strip()
         if not question:
             response = AssistantResponse(answer="Ask a question about the portfolio projects.", citations=())
@@ -119,6 +161,22 @@ class LearningAssistant:
         data_response = self._try_data_route(question, project_slug)
         search_query = self._search_query(question, history)
         results = self.index.search(search_query, project_slug=project_slug, limit=6)
+        return self._plan_from_context(
+            question=question,
+            project_slug=project_slug,
+            history=history,
+            data_response=data_response,
+            results=results,
+        )
+
+    def _plan_from_context(
+        self,
+        question: str,
+        project_slug: str | None,
+        history: Sequence[Message] | None,
+        data_response: AssistantResponse | None,
+        results: list[SearchResult],
+    ) -> AssistantPlan:
         if not results and not data_response:
             scope = f" for `{project_slug}`" if project_slug else ""
             response = AssistantResponse(
@@ -147,6 +205,188 @@ class LearningAssistant:
             fallback_response=fallback,
             messages=tuple(self._llm_messages(question, results, data_response, history)),
             llm_route="llm_data" if data_response else "llm_rag",
+        )
+
+    def _should_use_langgraph_backend(self) -> bool:
+        if self.agent_backend == "custom":
+            return False
+        available = importlib.util.find_spec("langgraph") is not None
+        if self.agent_backend == "auto":
+            return available
+        return True
+
+    def _langgraph_plan_answer(
+        self,
+        question: str,
+        project_slug: str | None,
+        history: Sequence[Message] | None,
+    ) -> AssistantPlan:
+        graph = self._compiled_langgraph()
+        state = {
+            "question": question,
+            "project_slug": project_slug,
+            "history": list(history or []),
+        }
+        result = graph.invoke(
+            state,
+            {"configurable": {"thread_id": self.thread_id}},
+        )
+        if result.get("plan"):
+            return self._plan_from_payload(result["plan"])
+        if result.get("response"):
+            return AssistantPlan(fallback_response=self._response_from_payload(result["response"]))
+        return self._custom_plan_answer(question, project_slug=project_slug, history=history)
+
+    def _compiled_langgraph(self):
+        if self._langgraph_graph is not None:
+            return self._langgraph_graph
+
+        from langgraph.checkpoint.memory import InMemorySaver
+        from langgraph.graph import END, START, StateGraph
+
+        def classify(state: dict[str, Any]) -> dict[str, Any]:
+            question = str(state.get("question", "")).strip()
+            project_slug = state.get("project_slug")
+            if not question:
+                response = AssistantResponse(answer="Ask a question about the portfolio projects.", citations=())
+                return {"response": self._response_payload(response)}
+
+            runtime_response = self._try_runtime_route(question)
+            if runtime_response:
+                return {"response": self._response_payload(runtime_response)}
+
+            trait_response = self._try_project_traits_route(question, project_slug)
+            if trait_response:
+                return {"response": self._response_payload(trait_response)}
+            return {}
+
+        def route_after_classify(state: dict[str, Any]) -> str:
+            return END if state.get("response") else "retrieve"
+
+        def retrieve(state: dict[str, Any]) -> dict[str, Any]:
+            question = str(state.get("question", "")).strip()
+            project_slug = state.get("project_slug")
+            history = state.get("history") or []
+            data_response = self._try_data_route(question, project_slug)
+            search_query = self._search_query(question, history)
+            results = self.index.search(search_query, project_slug=project_slug, limit=6)
+            return {
+                "data_response": self._response_payload(data_response) if data_response else None,
+                "results": [self._search_result_payload(result) for result in results],
+            }
+
+        def synthesize(state: dict[str, Any]) -> dict[str, Any]:
+            question = str(state.get("question", "")).strip()
+            project_slug = state.get("project_slug")
+            history = state.get("history") or []
+            data_response = (
+                self._response_from_payload(state["data_response"])
+                if state.get("data_response")
+                else None
+            )
+            results = [self._search_result_from_payload(result) for result in state.get("results", [])]
+            plan = self._plan_from_context(
+                question=question,
+                project_slug=project_slug,
+                history=history,
+                data_response=data_response,
+                results=results,
+            )
+            return {"plan": self._plan_payload(plan)}
+
+        builder = StateGraph(AgentGraphState)
+        builder.add_node("classify", classify)
+        builder.add_node("retrieve", retrieve)
+        builder.add_node("synthesize", synthesize)
+        builder.add_edge(START, "classify")
+        builder.add_conditional_edges(
+            "classify",
+            route_after_classify,
+            {"retrieve": "retrieve", END: END},
+        )
+        builder.add_edge("retrieve", "synthesize")
+        builder.add_edge("synthesize", END)
+        self._langgraph_graph = builder.compile(checkpointer=InMemorySaver())
+        return self._langgraph_graph
+
+    def _plan_payload(self, plan: AssistantPlan) -> dict[str, Any]:
+        return {
+            "fallback_response": self._response_payload(plan.fallback_response),
+            "messages": list(plan.messages),
+            "llm_route": plan.llm_route,
+        }
+
+    def _plan_from_payload(self, payload: dict[str, Any]) -> AssistantPlan:
+        return AssistantPlan(
+            fallback_response=self._response_from_payload(payload["fallback_response"]),
+            messages=tuple(payload.get("messages", [])),
+            llm_route=str(payload.get("llm_route", "llm_rag")),
+        )
+
+    def _response_payload(self, response: AssistantResponse) -> dict[str, Any]:
+        return {
+            "answer": response.answer,
+            "citations": [
+                {
+                    "project_slug": citation.project_slug,
+                    "source_type": citation.source_type,
+                    "path": citation.path,
+                    "section": citation.section,
+                    "score": citation.score,
+                }
+                for citation in response.citations
+            ],
+            "data_result": self._query_result_payload(response.data_result) if response.data_result else None,
+            "route": response.route,
+        }
+
+    def _response_from_payload(self, payload: dict[str, Any]) -> AssistantResponse:
+        return AssistantResponse(
+            answer=str(payload.get("answer", "")),
+            citations=tuple(
+                Citation(
+                    project_slug=str(citation.get("project_slug", "")),
+                    source_type=str(citation.get("source_type", "")),
+                    path=str(citation.get("path", "")),
+                    section=str(citation.get("section", "")),
+                    score=float(citation.get("score", 0.0)),
+                )
+                for citation in payload.get("citations", [])
+            ),
+            data_result=(
+                self._query_result_from_payload(payload["data_result"])
+                if payload.get("data_result")
+                else None
+            ),
+            route=str(payload.get("route", "rag")),
+        )
+
+    def _query_result_payload(self, result: QueryResult) -> dict[str, Any]:
+        return {
+            "columns": list(result.columns),
+            "rows": [[str(value) for value in row] for row in result.rows],
+            "row_count": result.row_count,
+        }
+
+    def _query_result_from_payload(self, payload: dict[str, Any]) -> QueryResult:
+        return QueryResult(
+            columns=tuple(str(column) for column in payload.get("columns", [])),
+            rows=tuple(tuple(row) for row in payload.get("rows", [])),
+            row_count=int(payload.get("row_count", 0)),
+        )
+
+    def _search_result_payload(self, result: SearchResult) -> dict[str, Any]:
+        return {
+            "text": result.text,
+            "metadata": dict(result.metadata),
+            "score": result.score,
+        }
+
+    def _search_result_from_payload(self, payload: dict[str, Any]) -> SearchResult:
+        return SearchResult(
+            text=str(payload.get("text", "")),
+            metadata={str(key): str(value) for key, value in payload.get("metadata", {}).items()},
+            score=float(payload.get("score", 0.0)),
         )
 
     def _try_runtime_route(self, question: str) -> AssistantResponse | None:
