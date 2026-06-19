@@ -69,3 +69,10 @@
 - Default configuration targets owner gateway mode with LiteLLM, while OpenRouter and custom OpenAI-compatible endpoints use the same adapter contract.
 - If no key is configured, the hub stays in local TF-IDF retrieval plus DuckDB Gold mode; visitor BYOK is session-only and masked in UI status.
 - The AI Helper page now shows runtime status, starter prompts, clear chat, and streamed assistant responses.
+
+## M10 - Learning Hub Gateway And Planner Added
+
+- Batch 2 added optional Chroma/OpenAI-compatible vector indexing while keeping TF-IDF as the no-key deterministic backend.
+- The index manifest now records a source hash, backend, and embedding model so model/source drift can be detected before relying on stale retrieval.
+- Docker Compose now has an optional LiteLLM gateway profile using a project-local config file; OpenRouter remains a managed gateway option through env configuration.
+- The Quiz/Data Coach can use a live model to propose JSON SQL, but every query still runs through the existing approved Gold-mart validator before DuckDB execution.

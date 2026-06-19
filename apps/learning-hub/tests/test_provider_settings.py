@@ -66,3 +66,16 @@ def test_local_mode_ignores_configured_keys() -> None:
     assert runtime.effective_mode == "local"
     assert runtime.live_enabled is False
     assert runtime.api_key is None
+
+
+def test_litellm_does_not_use_upstream_openai_key_as_gateway_key() -> None:
+    settings = load_ai_settings(
+        {
+            "LEARNING_HUB_PROVIDER": "litellm",
+            "OPENAI_API_KEY": "upstream-openai-key",
+        }
+    )
+    runtime = resolve_ai_runtime(settings)
+
+    assert runtime.live_enabled is False
+    assert runtime.api_key is None

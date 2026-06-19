@@ -8,10 +8,11 @@ import streamlit as st
 from learning_hub.assistant import LearningAssistant, response_table_markdown
 from learning_hub.catalog import catalog_summary, describe_gold_tables, get_project, load_catalog
 from learning_hub.data_tool import GoldQueryTool, UnsafeQueryError
-from learning_hub.indexing import check_index_inputs, load_local_index, load_manifest
+from learning_hub.indexing import check_index_inputs, load_manifest, load_search_index
 from learning_hub.llm_client import create_llm_client
 from learning_hub.paths import DEFAULT_INDEX_DIR, display_path
 from learning_hub.settings import load_ai_settings, resolve_ai_runtime
+from learning_hub.sql_planner import plan_and_run_gold_query
 
 
 st.set_page_config(page_title="365DS Learning Hub", layout="wide")
@@ -29,7 +30,7 @@ def cached_summary() -> pd.DataFrame:
 
 @st.cache_resource(show_spinner=False)
 def cached_index():
-    return load_local_index(DEFAULT_INDEX_DIR)
+    return load_search_index(DEFAULT_INDEX_DIR, settings=load_ai_settings())
 
 
 @st.cache_resource(show_spinner=False)
@@ -201,6 +202,7 @@ def quiz_data_coach() -> None:
     slug = selected_project()
     project = get_project(slug, cached_projects())
     tool = GoldQueryTool(cached_projects())
+    runtime = runtime_controls()
 
     if "mart_quiz_answers" in project.gold_tables:
         result = tool.run_gold_query(
@@ -224,6 +226,28 @@ def quiz_data_coach() -> None:
         st.dataframe(pd.DataFrame(preview.rows, columns=preview.columns), use_container_width=True, hide_index=True)
     except UnsafeQueryError as exc:
         st.error(str(exc))
+
+    st.subheader("Ask Approved Gold Data")
+    question = st.text_input("Data question", placeholder="Example: What is the regression R-squared?")
+    if st.button("Plan and run Gold query"):
+        if not runtime.live_enabled:
+            st.warning("Live model synthesis is not configured. Add an owner key or session key to use the SQL planner.")
+        else:
+            try:
+                llm_client = create_llm_client(runtime)
+                if llm_client is None:
+                    raise RuntimeError("Live model client is unavailable.")
+                planned = plan_and_run_gold_query(slug, question, llm_client=llm_client)
+                st.code(planned.sql, language="sql")
+                if planned.explanation:
+                    st.caption(planned.explanation)
+                st.dataframe(
+                    pd.DataFrame(planned.result.rows, columns=planned.result.columns),
+                    use_container_width=True,
+                    hide_index=True,
+                )
+            except (UnsafeQueryError, ValueError, RuntimeError) as exc:
+                st.error(str(exc))
 
 
 def architecture_lineage() -> None:

@@ -154,7 +154,8 @@ def _owner_key(values: Mapping[str, str], provider: str) -> tuple[str | None, st
         key_order.append("OPENROUTER_API_KEY")
     elif provider == "litellm":
         key_order.append("LITELLM_API_KEY")
-    key_order.append("OPENAI_API_KEY")
+    else:
+        key_order.append("OPENAI_API_KEY")
 
     for key in key_order:
         value = values.get(key)

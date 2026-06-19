@@ -1,0 +1,9 @@
+model_list:
+  - model_name: 365ds-chat
+    litellm_params:
+      model: openai/gpt-4o-mini
+      api_key: os.environ/OPENAI_API_KEY
+  - model_name: 365ds-embeddings
+    litellm_params:
+      model: openai/text-embedding-3-small
+      api_key: os.environ/OPENAI_API_KEY

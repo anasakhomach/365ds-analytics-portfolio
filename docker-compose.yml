@@ -8,6 +8,16 @@ services:
       - "8507:8501"
     environment:
       OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      OPENROUTER_API_KEY: ${OPENROUTER_API_KEY:-}
+      LITELLM_API_KEY: ${LITELLM_API_KEY:-}
+      LEARNING_HUB_AI_MODE: ${LEARNING_HUB_AI_MODE:-gateway}
+      LEARNING_HUB_PROVIDER: ${LEARNING_HUB_PROVIDER:-litellm}
+      LEARNING_HUB_BASE_URL: ${LEARNING_HUB_BASE_URL:-http://litellm:4000/v1}
+      LEARNING_HUB_CHAT_MODEL: ${LEARNING_HUB_CHAT_MODEL:-365ds-chat}
+      LEARNING_HUB_EMBEDDING_BACKEND: ${LEARNING_HUB_EMBEDDING_BACKEND:-local_tfidf}
+      LEARNING_HUB_EMBEDDING_MODEL: ${LEARNING_HUB_EMBEDDING_MODEL:-text-embedding-3-small}
+      LEARNING_HUB_ENABLE_BYOK: ${LEARNING_HUB_ENABLE_BYOK:-true}
+      LEARNING_HUB_API_KEY: ${LEARNING_HUB_API_KEY:-}
       LEARNING_HUB_INDEX_DIR: /app/apps/learning-hub/.index
       LEARNING_HUB_CHROMA_DIR: /app/apps/learning-hub/.chroma
     volumes:
@@ -24,11 +34,33 @@ services:
     command: ["python", "apps/learning-hub/scripts/build_index.py"]
     environment:
       OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      OPENROUTER_API_KEY: ${OPENROUTER_API_KEY:-}
+      LITELLM_API_KEY: ${LITELLM_API_KEY:-}
+      LEARNING_HUB_AI_MODE: ${LEARNING_HUB_AI_MODE:-gateway}
+      LEARNING_HUB_PROVIDER: ${LEARNING_HUB_PROVIDER:-litellm}
+      LEARNING_HUB_BASE_URL: ${LEARNING_HUB_BASE_URL:-http://litellm:4000/v1}
+      LEARNING_HUB_CHAT_MODEL: ${LEARNING_HUB_CHAT_MODEL:-365ds-chat}
+      LEARNING_HUB_EMBEDDING_BACKEND: ${LEARNING_HUB_EMBEDDING_BACKEND:-local_tfidf}
+      LEARNING_HUB_EMBEDDING_MODEL: ${LEARNING_HUB_EMBEDDING_MODEL:-text-embedding-3-small}
+      LEARNING_HUB_API_KEY: ${LEARNING_HUB_API_KEY:-}
       LEARNING_HUB_INDEX_DIR: /app/apps/learning-hub/.index
       LEARNING_HUB_CHROMA_DIR: /app/apps/learning-hub/.chroma
     volumes:
       - learning_hub_index:/app/apps/learning-hub/.index
       - learning_hub_chroma:/app/apps/learning-hub/.chroma
+
+  litellm:
+    image: docker.litellm.ai/berriai/litellm:main-stable
+    profiles:
+      - gateway
+    command: ["--config", "/app/config.yaml", "--port", "4000"]
+    ports:
+      - "4000:4000"
+    environment:
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      LITELLM_MASTER_KEY: ${LITELLM_MASTER_KEY:-}
+    volumes:
+      - ./apps/learning-hub/config/litellm_config.yaml:/app/config.yaml:ro
 
 volumes:
   learning_hub_index:
