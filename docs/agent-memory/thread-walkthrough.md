@@ -62,3 +62,10 @@
 - The hub uses a YAML project catalog, indexes docs/reports/instructions/code/Gold table summaries, and provides a citation-first local retrieval fallback that works without an API key.
 - A safe DuckDB tool reads only approved `gold.*` marts from each project warehouse and rejects writes, lower-layer access, unapproved tables, and multi-statement SQL.
 - Docker support was added from v1 via `Dockerfile.learning-hub` and `docker-compose.yml`; local Streamlit verification passed, while Docker image build requires Docker Desktop's Linux engine to be running.
+
+## M9 - Learning Hub Provider Layer Started
+
+- Batch 1 upgraded the hub from local-only retrieval to an optional provider-agnostic live AI layer.
+- Default configuration targets owner gateway mode with LiteLLM, while OpenRouter and custom OpenAI-compatible endpoints use the same adapter contract.
+- If no key is configured, the hub stays in local TF-IDF retrieval plus DuckDB Gold mode; visitor BYOK is session-only and masked in UI status.
+- The AI Helper page now shows runtime status, starter prompts, clear chat, and streamed assistant responses.

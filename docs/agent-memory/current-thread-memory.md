@@ -83,6 +83,8 @@ Imported from `C:\Users\Nitro\aicvgen\.tmp\agent-skills\skills`:
 - Tracking User Engagement translates Excel tasks into reproducible Python/Gold outputs; no committed workbook is required unless the user explicitly asks for one.
 - The Learning Hub is additive. It does not restructure the five completed projects; it indexes their docs/code/reports and reads approved `gold.*` marts only.
 - Docker Compose is configured for the Learning Hub, but Docker Desktop's Linux engine must be running for image build/run verification.
+- Learning Hub live AI is optional and provider-agnostic: the configured default is owner gateway mode with LiteLLM as the default provider, OpenRouter/custom OpenAI-compatible endpoints supported by env vars, and local TF-IDF/DuckDB fallback whenever no API key is available.
+- Learning Hub BYOK is session-only: visitor keys are accepted through Streamlit password input, kept in `st.session_state`, masked in status labels, and never written to repo files, manifests, logs, or docs.
 
 ## Verification History
 
@@ -104,6 +106,7 @@ Imported from `C:\Users\Nitro\aicvgen\.tmp\agent-skills\skills`:
 - 2026-06-19: Added `projects/customer-engagement-analysis/` with SQL-first DuckDB medallion layers, multi-block MySQL dump parsing, engagement marts, report, and Streamlit dashboard; static compile, runtime pipeline, and SQL quality checks passed.
 - 2026-06-19: Added `projects/tracking-user-engagement/` with SQL-first DuckDB medallion layers, multi-block MySQL dump parsing, Q2 paid/free cohorts, 99th-percentile outlier filtering, t-tests, certificate correlation, linear regression, probability marts, report, and Streamlit dashboard; static compile, runtime pipeline, and quality checks passed.
 - 2026-06-19: Added `apps/learning-hub/` with a five-project catalog, local TF-IDF RAG-style indexer, citation-first assistant fallback, safe read-only DuckDB Gold query tool, multipage Streamlit hub, Dockerfile, Compose stack, and architecture docs. Local tests passed; Streamlit responded on `http://localhost:8507`; Docker build was blocked because Docker Desktop's Linux engine was not running.
+- 2026-06-19: Learning Hub Batch 1 added provider settings, OpenAI-compatible live model client wiring, session-only BYOK support, LLM answer synthesis over retrieved context/Gold data, streamed chat output, and UI runtime status. Verification: `.\.venv-365ds\Scripts\python.exe -m pytest apps\learning-hub\tests -q` returned 19 passed; `py_compile` passed for the touched hub Python files.
 
 - 2026-06-17: Added projects/real-estate-market-analysis/reports/real_estate_market_analysis_star_b_retrospective.md as an internal STAR-B proof report for the Real Estate project; no pipeline rerun or source data changes were performed.
 
@@ -111,7 +114,7 @@ Imported from `C:\Users\Nitro\aicvgen\.tmp\agent-skills\skills`:
 
 - Review the Learning Hub at `http://localhost:8507`.
 - Start Docker Desktop, then rerun `docker compose build learning-hub` and `docker compose run --rm indexer` for container verification.
-- Optional later enhancement: wire OpenAI/Chroma generation into the existing Learning Hub contracts.
+- Continue Learning Hub Batch 2: add optional Chroma/OpenAI-compatible vector indexing, LiteLLM gateway Compose profile, OpenRouter/LiteLLM docs, and safe LLM-assisted Gold SQL planning.
 
 ## Deferred Missions
 

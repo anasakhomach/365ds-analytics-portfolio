@@ -5,6 +5,7 @@ pyyaml>=6.0,<7
 scikit-learn>=1.9,<2
 streamlit>=1.58,<2
 pytest>=9,<10
+openai>=2.11,<3
 
 # Optional AI/RAG backend dependencies for OpenAI + Chroma mode.
 # The hub also ships with a local TF-IDF retrieval backend for offline demos and tests.

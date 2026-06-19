@@ -9,7 +9,9 @@ from learning_hub.assistant import LearningAssistant, response_table_markdown
 from learning_hub.catalog import catalog_summary, describe_gold_tables, get_project, load_catalog
 from learning_hub.data_tool import GoldQueryTool, UnsafeQueryError
 from learning_hub.indexing import check_index_inputs, load_local_index, load_manifest
+from learning_hub.llm_client import create_llm_client
 from learning_hub.paths import DEFAULT_INDEX_DIR, display_path
+from learning_hub.settings import load_ai_settings, resolve_ai_runtime
 
 
 st.set_page_config(page_title="365DS Learning Hub", layout="wide")
@@ -33,6 +35,27 @@ def cached_index():
 @st.cache_resource(show_spinner=False)
 def cached_assistant():
     return LearningAssistant(index=cached_index(), projects=cached_projects())
+
+
+def runtime_controls():
+    settings = load_ai_settings()
+    byok_key = None
+
+    with st.sidebar:
+        st.subheader("AI Runtime")
+        if settings.enable_byok:
+            byok_key = st.text_input(
+                "Session API key",
+                type="password",
+                help="Optional. Kept only in this Streamlit session and never written to disk.",
+            )
+        runtime = resolve_ai_runtime(settings, session_api_key=byok_key)
+        st.caption(runtime.safe_label())
+        if runtime.live_enabled:
+            st.success("Live model synthesis enabled.")
+        else:
+            st.info(runtime.reason)
+    return runtime
 
 
 def project_options(include_all: bool = False) -> dict[str, str]:
@@ -119,9 +142,11 @@ def project_explorer() -> None:
 def ai_learning_helper() -> None:
     st.title("AI Learning Helper")
     slug = selected_project("Scope", include_all=True)
+    runtime = runtime_controls()
 
     try:
-        assistant = cached_assistant()
+        llm_client = create_llm_client(runtime)
+        assistant = LearningAssistant(index=cached_index(), projects=cached_projects(), llm_client=llm_client)
     except FileNotFoundError:
         st.error("Build the local search index before using the assistant.")
         st.code(r".\.venv-365ds\Scripts\python.exe apps\learning-hub\scripts\build_index.py")
@@ -134,18 +159,40 @@ def ai_learning_helper() -> None:
         with st.chat_message(message["role"]):
             st.markdown(message["content"])
 
-    if prompt := st.chat_input("Ask about the projects, architecture, quiz answers, or Gold marts"):
+    if not st.session_state.learning_hub_messages:
+        st.chat_message("assistant").markdown(
+            "Hi, I can explain the five analytics projects, trace the architecture, help with quiz-style questions, and query approved Gold marts."
+        )
+        starter_questions = [
+            "Which projects use SQL-first medallion layers?",
+            "How does the safe DuckDB data tool work?",
+            "What quiz answers are available for Tracking User Engagement?",
+        ]
+        cols = st.columns(len(starter_questions))
+        for col, question in zip(cols, starter_questions, strict=True):
+            if col.button(question):
+                st.session_state.learning_hub_pending_prompt = question
+
+    if st.button("Clear chat", type="secondary"):
+        st.session_state.learning_hub_messages = []
+        st.session_state.pop("learning_hub_pending_prompt", None)
+        st.rerun()
+
+    prompt = st.session_state.pop("learning_hub_pending_prompt", None)
+    prompt = prompt or st.chat_input("Ask about the projects, architecture, quiz answers, or Gold marts")
+    if prompt:
         st.session_state.learning_hub_messages.append({"role": "user", "content": prompt})
         with st.chat_message("user"):
             st.markdown(prompt)
 
-        response = assistant.answer(prompt, project_slug=slug)
-        answer = response.answer
-        if response.data_result:
-            answer += "\n\n" + response_table_markdown(response.data_result)
+        response_shell, chunks = assistant.stream_answer(prompt, project_slug=slug)
         with st.chat_message("assistant"):
-            st.markdown(answer)
-            render_citations(response.citations)
+            answer = st.write_stream(chunks)
+            if response_shell.data_result:
+                table_markdown = response_table_markdown(response_shell.data_result)
+                st.markdown(table_markdown)
+                answer += "\n\n" + table_markdown
+            render_citations(response_shell.citations)
         st.session_state.learning_hub_messages.append({"role": "assistant", "content": answer})
 
 

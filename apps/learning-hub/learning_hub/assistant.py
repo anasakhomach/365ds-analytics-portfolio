@@ -7,6 +7,7 @@ from textwrap import shorten
 from .catalog import Project, get_project, load_catalog
 from .data_tool import GoldQueryTool, QueryResult, UnsafeQueryError
 from .indexing import LocalSearchIndex, SearchResult, load_local_index
+from .llm_client import LLMClient, Message
 from .paths import DEFAULT_INDEX_DIR
 
 
@@ -27,6 +28,13 @@ class AssistantResponse:
     route: str = "rag"
 
 
+@dataclass(frozen=True)
+class AssistantPlan:
+    fallback_response: AssistantResponse
+    messages: tuple[Message, ...] = ()
+    llm_route: str = "llm_rag"
+
+
 class LearningAssistant:
     def __init__(
         self,
@@ -34,32 +42,88 @@ class LearningAssistant:
         data_tool: GoldQueryTool | None = None,
         projects: list[Project] | None = None,
         index_dir: Path = DEFAULT_INDEX_DIR,
+        llm_client: LLMClient | None = None,
     ) -> None:
         self.projects = projects or load_catalog()
         self.index = index or load_local_index(index_dir)
         self.data_tool = data_tool or GoldQueryTool(self.projects)
+        self.llm_client = llm_client
 
     def answer(self, question: str, project_slug: str | None = None) -> AssistantResponse:
+        plan = self.plan_answer(question, project_slug=project_slug)
+        if self.llm_client and plan.messages:
+            try:
+                answer = self.llm_client.complete(list(plan.messages))
+                return AssistantResponse(
+                    answer=answer,
+                    citations=plan.fallback_response.citations,
+                    data_result=plan.fallback_response.data_result,
+                    route=plan.llm_route,
+                )
+            except Exception as exc:
+                return self._with_llm_fallback_note(plan.fallback_response, exc)
+        return plan.fallback_response
+
+    def stream_answer(
+        self,
+        question: str,
+        project_slug: str | None = None,
+    ) -> tuple[AssistantResponse, object]:
+        plan = self.plan_answer(question, project_slug=project_slug)
+        shell = AssistantResponse(
+            answer="",
+            citations=plan.fallback_response.citations,
+            data_result=plan.fallback_response.data_result,
+            route=plan.llm_route if self.llm_client and plan.messages else plan.fallback_response.route,
+        )
+        if not self.llm_client or not plan.messages:
+            return shell, iter([plan.fallback_response.answer])
+
+        def chunks():
+            try:
+                yield from self.llm_client.stream(list(plan.messages))
+            except Exception as exc:
+                yield self._with_llm_fallback_note(plan.fallback_response, exc).answer
+
+        return shell, chunks()
+
+    def plan_answer(self, question: str, project_slug: str | None = None) -> AssistantPlan:
         question = question.strip()
         if not question:
-            return AssistantResponse(answer="Ask a question about the portfolio projects.", citations=())
+            response = AssistantResponse(answer="Ask a question about the portfolio projects.", citations=())
+            return AssistantPlan(fallback_response=response)
 
         data_response = self._try_data_route(question, project_slug)
-        if data_response:
-            return data_response
-
         results = self.index.search(question, project_slug=project_slug, limit=6)
-        if not results:
+        if not results and not data_response:
             scope = f" for `{project_slug}`" if project_slug else ""
-            return AssistantResponse(
+            response = AssistantResponse(
                 answer=f"I don't know from the indexed project sources{scope}. Try asking about a project report, pipeline, Gold mart, or quiz answer.",
                 citations=(),
                 route="rag_no_context",
             )
+            return AssistantPlan(fallback_response=response)
+
+        if data_response and not results:
+            return AssistantPlan(
+                fallback_response=data_response,
+                messages=tuple(self._llm_messages(question, [], data_response)),
+                llm_route="llm_data",
+            )
 
         answer = self._extractive_answer(question, results)
         citations = tuple(self._citation(result) for result in results[:4])
-        return AssistantResponse(answer=answer, citations=citations, route="rag")
+        fallback = AssistantResponse(
+            answer=answer,
+            citations=citations,
+            data_result=data_response.data_result if data_response else None,
+            route=data_response.route if data_response else "rag",
+        )
+        return AssistantPlan(
+            fallback_response=fallback,
+            messages=tuple(self._llm_messages(question, results, data_response)),
+            llm_route="llm_data" if data_response else "llm_rag",
+        )
 
     def _try_data_route(self, question: str, project_slug: str | None) -> AssistantResponse | None:
         if not project_slug:
@@ -149,6 +213,57 @@ class LearningAssistant:
             ]
         )
         return "\n".join(lines)
+
+    def _llm_messages(
+        self,
+        question: str,
+        results: list[SearchResult],
+        data_response: AssistantResponse | None,
+    ) -> list[Message]:
+        context_lines: list[str] = []
+        for index, result in enumerate(results[:6], start=1):
+            metadata = result.metadata
+            label = (
+                f"[S{index}] project={metadata.get('project_slug', '')}; "
+                f"type={metadata.get('source_type', '')}; path={metadata.get('path', '')}; "
+                f"section={metadata.get('section', '')}"
+            )
+            context_lines.append(label)
+            context_lines.append(shorten(" ".join(result.text.split()), width=1200, placeholder="..."))
+            context_lines.append("")
+
+        data_block = ""
+        if data_response and data_response.data_result:
+            data_block = response_table_markdown(data_response.data_result)
+
+        system = (
+            "You are the 365DS Portfolio Learning Helper. Answer as a practical tutor for "
+            "analytics learners and portfolio reviewers. Cite sources using the provided "
+            "source labels or Gold table names. Cite sources; do not invent facts. If the "
+            "provided context and approved data do not answer the question, say: "
+            "\"I don't know from the indexed project sources.\""
+        )
+        user = (
+            f"Question:\n{question}\n\n"
+            f"Retrieved context:\n{chr(10).join(context_lines).strip() or 'No retrieved text context.'}\n\n"
+            f"Approved Gold data:\n{data_block or 'No Gold data result.'}"
+        )
+        return [
+            {"role": "system", "content": system},
+            {"role": "user", "content": user},
+        ]
+
+    def _with_llm_fallback_note(self, response: AssistantResponse, exc: Exception) -> AssistantResponse:
+        note = (
+            "\n\nLive model synthesis was unavailable, so this answer used the local retrieval fallback. "
+            f"Error type: {type(exc).__name__}."
+        )
+        return AssistantResponse(
+            answer=response.answer + note,
+            citations=response.citations,
+            data_result=response.data_result,
+            route=response.route,
+        )
 
     def _citation(self, result: SearchResult) -> Citation:
         metadata = result.metadata
