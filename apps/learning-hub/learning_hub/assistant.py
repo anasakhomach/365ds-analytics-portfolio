@@ -150,6 +150,10 @@ class LearningAssistant:
             response = AssistantResponse(answer="Ask a question about the portfolio projects.", citations=())
             return AssistantPlan(fallback_response=response)
 
+        capability_response = self._try_capability_route(question, project_slug)
+        if capability_response:
+            return AssistantPlan(fallback_response=capability_response)
+
         runtime_response = self._try_runtime_route(question)
         if runtime_response:
             return AssistantPlan(fallback_response=runtime_response)
@@ -250,6 +254,10 @@ class LearningAssistant:
             if not question:
                 response = AssistantResponse(answer="Ask a question about the portfolio projects.", citations=())
                 return {"response": self._response_payload(response)}
+
+            capability_response = self._try_capability_route(question, project_slug)
+            if capability_response:
+                return {"response": self._response_payload(capability_response)}
 
             runtime_response = self._try_runtime_route(question)
             if runtime_response:
@@ -432,6 +440,65 @@ class LearningAssistant:
         )
         return AssistantResponse(answer=answer, citations=(), route="runtime")
 
+    def _try_capability_route(self, question: str, project_slug: str | None) -> AssistantResponse | None:
+        lower = question.lower().strip()
+        help_phrases = (
+            "how can you help",
+            "how can u help",
+            "what can you do",
+            "what do you do",
+            "what can i ask",
+            "help me",
+            "help with",
+        )
+        asks_help = any(phrase in lower for phrase in help_phrases)
+        asks_sql_capability = (
+            ("can you" in lower or "do you" in lower)
+            and any(term in lower for term in ("sql", "query", "queries", "queies"))
+            and any(term in lower for term in ("run", "write", "execute", "create", "help"))
+        )
+
+        if not asks_help and not asks_sql_capability:
+            return None
+
+        if asks_sql_capability:
+            answer = (
+                "Yes, with guardrails. I can help write SQL for the portfolio projects, explain the existing SQL pipelines, "
+                "and answer data questions from approved DuckDB Gold marts. In the app, executable data access is read-only: "
+                "single `SELECT` or `WITH` queries against catalog-approved `gold.*` tables for a selected project. "
+                "I do not run writes, raw/Bronze/Silver queries, arbitrary database paths, file reads, or destructive SQL. "
+                "For live model SQL planning, use the Quiz And Data page with a configured provider or session key; the generated SQL still passes the same Gold-only validator before DuckDB executes it."
+            )
+        else:
+            scope = "the selected project" if project_slug else "all five projects"
+            answer = (
+                f"I can help you explore {scope} in a few practical ways:\n\n"
+                "- Explain the five analytics projects, their business questions, datasets, medallion layers, and dashboards.\n"
+                "- Answer quiz-style and report questions with citations from indexed project docs and reports.\n"
+                "- Explain architecture choices such as DuckDB, Streamlit, SQL-first pipelines, provider-agnostic AI, and LangGraph.\n"
+                "- Query approved Gold marts through the safe DuckDB data tool when a project scope/table is selected.\n"
+                "- Help draft or review SQL/Python/Streamlit work for these projects, while keeping raw data and lower warehouse layers protected.\n\n"
+                "A good next question is: `Which projects use SQL-first medallion layers?` or choose a project and ask for its quiz answers or KPIs."
+            )
+
+        citations = (
+            Citation(
+                project_slug or "learning-hub",
+                "app_contract",
+                "apps/learning-hub/docs/architecture.md",
+                "Assistant Backends",
+                1.0,
+            ),
+            Citation(
+                project_slug or "learning-hub",
+                "app_contract",
+                "apps/learning-hub/docs/architecture.md",
+                "Data Access",
+                1.0,
+            ),
+        )
+        return AssistantResponse(answer=answer, citations=citations, route="capabilities")
+
     def _try_project_traits_route(self, question: str, project_slug: str | None) -> AssistantResponse | None:
         if project_slug:
             return None
@@ -570,7 +637,7 @@ class LearningAssistant:
         lines.extend(
             [
                 "",
-                "This local fallback is retrieval-grounded. Configure `OPENAI_API_KEY` and install the hub AI dependencies to generate more fluent synthesized answers.",
+                "This local fallback is retrieval-grounded. Configure a live provider or enter a session API key for more fluent synthesized answers.",
             ]
         )
         return "\n".join(lines)
@@ -656,8 +723,8 @@ class LearningAssistant:
 
     def _with_llm_fallback_note(self, response: AssistantResponse, exc: Exception) -> AssistantResponse:
         note = (
-            "\n\nLive model synthesis was unavailable, so this answer used the local retrieval fallback. "
-            f"Error type: {type(exc).__name__}."
+            "\n\nLive model synthesis was configured but unreachable, so this answer used the local grounded fallback. "
+            f"Error type: {type(exc).__name__}. Check the AI Runtime provider/base URL or switch to local mode to avoid live calls."
         )
         return AssistantResponse(
             answer=response.answer + note,

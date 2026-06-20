@@ -91,3 +91,10 @@
 - `LEARNING_HUB_AGENT_BACKEND=custom|langgraph|auto` selects between the default custom backend and an optional LangGraph `StateGraph` backend with session-local thread IDs.
 - ADR-002 documents the hybrid backend decision; README, architecture notes, `.env.example`, and Compose expose the new backend selector.
 - Local and Docker verification pass with LangGraph installed: 31 hub tests, index checks, Docker rebuild, container tests, HTTP smoke, and explicit container LangGraph route smoke.
+
+## M13 - Learning Hub Capability QA Fix
+
+- User testing showed that assistant self/capability questions like "how can you help me" and "can you run or write sql queries" were still being treated as project RAG questions.
+- A deterministic `capabilities` route now answers app-contract and SQL-safety questions before retrieval or live model calls.
+- Regression tests cover the two user prompts plus LangGraph parity; local and container test suites now pass with 34 tests.
+- Docker was rebuilt and the running service on `http://localhost:8507` was recreated so the browser app serves the fixed assistant.

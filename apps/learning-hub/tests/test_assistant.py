@@ -115,6 +115,34 @@ def test_assistant_answers_runtime_model_questions_without_rag(tmp_path: Path) -
     assert "LinearRegression" not in response.answer
 
 
+def test_assistant_answers_help_questions_without_rag_or_llm(tmp_path: Path) -> None:
+    build_local_index(tmp_path)
+    llm_client = FakeLLMClient()
+    assistant = LearningAssistant(index=load_local_index(tmp_path), llm_client=llm_client)
+
+    response = assistant.answer("how can you help me")
+
+    assert response.route == "capabilities"
+    assert "explain the five analytics projects" in response.answer.lower()
+    assert "approved Gold marts" in response.answer
+    assert "project instructions" not in response.answer.lower()
+    assert llm_client.messages == []
+
+
+def test_assistant_answers_sql_capability_questions_without_rag_or_llm(tmp_path: Path) -> None:
+    build_local_index(tmp_path)
+    llm_client = FakeLLMClient()
+    assistant = LearningAssistant(index=load_local_index(tmp_path), llm_client=llm_client)
+
+    response = assistant.answer("can you run or write sql queies")
+
+    assert response.route == "capabilities"
+    assert "read-only" in response.answer
+    assert "gold.*" in response.answer
+    assert "writes" in response.answer
+    assert llm_client.messages == []
+
+
 def test_follow_up_question_uses_recent_history_for_retrieval(tmp_path: Path) -> None:
     build_local_index(tmp_path)
     assistant = LearningAssistant(index=load_local_index(tmp_path))
@@ -182,6 +210,22 @@ def test_langgraph_backend_can_route_to_safe_gold_data(tmp_path: Path) -> None:
     assert response.route == "data"
     assert response.data_result is not None
     assert "r_squared" in response.data_result.columns
+
+
+def test_langgraph_backend_answers_capability_questions(tmp_path: Path) -> None:
+    if importlib.util.find_spec("langgraph") is None:
+        pytest.skip("langgraph is not installed")
+    build_local_index(tmp_path)
+    assistant = LearningAssistant(
+        index=load_local_index(tmp_path),
+        agent_backend="langgraph",
+        thread_id="test-langgraph-capabilities",
+    )
+
+    response = assistant.answer("how can you help me")
+
+    assert response.route == "capabilities"
+    assert "approved Gold marts" in response.answer
 
 
 def test_assistant_streams_llm_answer_when_context_exists(tmp_path: Path) -> None:
