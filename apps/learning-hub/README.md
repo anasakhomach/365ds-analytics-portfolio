@@ -25,7 +25,7 @@ The Compose app exposes the hub at `http://localhost:8507`.
 
 ## AI Configuration
 
-The hub is provider-agnostic. It defaults to owner gateway mode, but falls back to local TF-IDF retrieval plus the DuckDB Gold tool when no key is configured.
+The hub is provider-agnostic. It defaults to direct OpenRouter provider mode with an owner-managed key when one is configured, but falls back to local TF-IDF retrieval plus the DuckDB Gold tool when no key is available.
 
 Copy `.env.example` to `.env`, then choose one mode.
 
@@ -53,11 +53,24 @@ No key is required. Answers are extractive and citation-first.
 ### OpenRouter
 
 ```powershell
-LEARNING_HUB_AI_MODE=gateway
+LEARNING_HUB_AI_MODE=provider
 LEARNING_HUB_PROVIDER=openrouter
 LEARNING_HUB_CHAT_MODEL=~openai/gpt-latest
 OPENROUTER_API_KEY=...
 ```
+
+This is the recommended portfolio-demo default. You can also put the owner key in `LEARNING_HUB_API_KEY`.
+
+### Groq
+
+```powershell
+LEARNING_HUB_AI_MODE=provider
+LEARNING_HUB_PROVIDER=groq
+LEARNING_HUB_CHAT_MODEL=llama-3.3-70b-versatile
+GROQ_API_KEY=...
+```
+
+Groq uses the OpenAI-compatible endpoint `https://api.groq.com/openai/v1`. The Streamlit sidebar also exposes Groq preset models and a custom model field.
 
 ### Custom OpenAI-Compatible Endpoint
 
@@ -74,6 +87,7 @@ OPENAI_API_KEY=...
 ```powershell
 OPENAI_API_KEY=...
 LITELLM_API_KEY=anything
+LEARNING_HUB_AI_MODE=gateway
 LEARNING_HUB_PROVIDER=litellm
 LEARNING_HUB_BASE_URL=http://litellm:4000/v1
 LEARNING_HUB_CHAT_MODEL=365ds-chat
@@ -84,7 +98,9 @@ The LiteLLM profile uses `apps/learning-hub/config/litellm_config.yaml` and expo
 
 ### BYOK
 
-If `LEARNING_HUB_ENABLE_BYOK=true`, visitors can enter a session API key in the Streamlit sidebar. The key is held only in `st.session_state`, masked in status labels, and never written to disk.
+If `LEARNING_HUB_ENABLE_BYOK=true`, visitors can enter a session API key in the Streamlit sidebar. The key is held only in `st.session_state`, masked in status labels, and never written to disk. Session keys override the owner key only for the provider currently selected in the AI Runtime panel.
+
+When the owner demo key is rate-limited, the assistant keeps answering from local indexed sources and prompts the visitor to wait, switch local mode, or enter a session key. Authentication, connection, and unavailable-model errors are classified separately so the UI can show the right next action.
 
 ### Optional Chroma Index
 

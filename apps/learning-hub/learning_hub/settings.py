@@ -4,9 +4,10 @@ import os
 from dataclasses import dataclass
 from typing import Mapping
 
+from .provider_catalog import PROVIDER_PRESETS, get_provider_preset
 
 VALID_AI_MODES = {"local", "provider", "gateway"}
-VALID_PROVIDERS = {"openai_compatible", "openrouter", "litellm"}
+VALID_PROVIDERS = set(PROVIDER_PRESETS)
 VALID_EMBEDDING_BACKENDS = {"local_tfidf", "chroma_openai_compatible"}
 VALID_AGENT_BACKENDS = {"custom", "langgraph", "auto"}
 
@@ -48,10 +49,20 @@ class AIRuntime:
         )
 
 
-def load_ai_settings(env: Mapping[str, str] | None = None) -> AISettings:
-    values = env if env is not None else os.environ
-    provider = _choice(values.get("LEARNING_HUB_PROVIDER"), VALID_PROVIDERS, "litellm")
-    mode = _choice(values.get("LEARNING_HUB_AI_MODE"), VALID_AI_MODES, "gateway")
+def load_ai_settings(
+    env: Mapping[str, str] | None = None,
+    overrides: Mapping[str, str | None] | None = None,
+) -> AISettings:
+    base_values = env if env is not None else os.environ
+    values = dict(base_values)
+    if overrides:
+        for key, value in overrides.items():
+            if value is not None:
+                values[key] = value
+
+    provider = _choice(values.get("LEARNING_HUB_PROVIDER"), VALID_PROVIDERS, "openrouter")
+    preset = get_provider_preset(provider)
+    mode = _choice(values.get("LEARNING_HUB_AI_MODE"), VALID_AI_MODES, preset.default_mode)
     embedding_backend = _choice(
         values.get("LEARNING_HUB_EMBEDDING_BACKEND"),
         VALID_EMBEDDING_BACKENDS,
@@ -62,8 +73,8 @@ def load_ai_settings(env: Mapping[str, str] | None = None) -> AISettings:
     return AISettings(
         mode=mode,
         provider=provider,
-        base_url=values.get("LEARNING_HUB_BASE_URL") or _default_base_url(provider),
-        chat_model=values.get("LEARNING_HUB_CHAT_MODEL") or _default_chat_model(provider),
+        base_url=values.get("LEARNING_HUB_BASE_URL") or preset.base_url,
+        chat_model=values.get("LEARNING_HUB_CHAT_MODEL") or preset.default_model,
         embedding_backend=embedding_backend,
         embedding_model=values.get("LEARNING_HUB_EMBEDDING_MODEL") or "text-embedding-3-small",
         enable_byok=_truthy(values.get("LEARNING_HUB_ENABLE_BYOK"), default=True),
@@ -136,29 +147,16 @@ def _truthy(value: str | None, default: bool = False) -> bool:
 
 
 def _default_base_url(provider: str) -> str:
-    if provider == "openrouter":
-        return "https://openrouter.ai/api/v1"
-    if provider == "litellm":
-        return "http://localhost:4000/v1"
-    return "https://api.openai.com/v1"
+    return get_provider_preset(provider).base_url
 
 
 def _default_chat_model(provider: str) -> str:
-    if provider == "openrouter":
-        return "~openai/gpt-latest"
-    if provider == "litellm":
-        return "365ds-chat"
-    return "gpt-4o-mini"
+    return get_provider_preset(provider).default_model
 
 
 def _owner_key(values: Mapping[str, str], provider: str) -> tuple[str | None, str | None]:
     key_order = ["LEARNING_HUB_API_KEY"]
-    if provider == "openrouter":
-        key_order.append("OPENROUTER_API_KEY")
-    elif provider == "litellm":
-        key_order.append("LITELLM_API_KEY")
-    else:
-        key_order.append("OPENAI_API_KEY")
+    key_order.extend(get_provider_preset(provider).key_aliases)
 
     for key in key_order:
         value = values.get(key)

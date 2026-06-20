@@ -9,7 +9,7 @@ from typing import Any, Sequence, TypedDict
 from .catalog import Project, get_project, load_catalog
 from .data_tool import GoldQueryTool, QueryResult, UnsafeQueryError
 from .indexing import LocalSearchIndex, SearchResult, load_local_index
-from .llm_client import LLMClient, Message
+from .llm_client import LLMClient, Message, ProviderErrorInfo, classify_provider_error
 from .paths import DEFAULT_INDEX_DIR
 from .settings import AIRuntime
 
@@ -42,6 +42,7 @@ class AssistantResponse:
     citations: tuple[Citation, ...]
     data_result: QueryResult | None = None
     route: str = "rag"
+    provider_error: ProviderErrorInfo | None = None
 
 
 @dataclass(frozen=True)
@@ -87,6 +88,7 @@ class LearningAssistant:
                     citations=plan.fallback_response.citations,
                     data_result=plan.fallback_response.data_result,
                     route=plan.llm_route,
+                    provider_error=None,
                 )
             except Exception as exc:
                 return self._with_llm_fallback_note(plan.fallback_response, exc)
@@ -346,6 +348,15 @@ class LearningAssistant:
             ],
             "data_result": self._query_result_payload(response.data_result) if response.data_result else None,
             "route": response.route,
+            "provider_error": (
+                {
+                    "category": response.provider_error.category,
+                    "message": response.provider_error.message,
+                    "action": response.provider_error.action,
+                }
+                if response.provider_error
+                else None
+            ),
         }
 
     def _response_from_payload(self, payload: dict[str, Any]) -> AssistantResponse:
@@ -367,6 +378,15 @@ class LearningAssistant:
                 else None
             ),
             route=str(payload.get("route", "rag")),
+            provider_error=(
+                ProviderErrorInfo(
+                    category=str(payload["provider_error"].get("category", "other")),
+                    message=str(payload["provider_error"].get("message", "")),
+                    action=str(payload["provider_error"].get("action", "")),
+                )
+                if payload.get("provider_error")
+                else None
+            ),
         )
 
     def _query_result_payload(self, result: QueryResult) -> dict[str, Any]:
@@ -722,15 +742,18 @@ class LearningAssistant:
         return "\n".join(turns)
 
     def _with_llm_fallback_note(self, response: AssistantResponse, exc: Exception) -> AssistantResponse:
+        provider_error = classify_provider_error(exc)
         note = (
-            "\n\nLive model synthesis was configured but unreachable, so this answer used the local grounded fallback. "
-            f"Error type: {type(exc).__name__}. Check the AI Runtime provider/base URL or switch to local mode to avoid live calls."
+            "\n\nLive model synthesis was configured, but this answer used the local grounded fallback. "
+            f"{provider_error.message} {provider_error.action} "
+            f"Error category: `{provider_error.category}`. Error type: `{type(exc).__name__}`."
         )
         return AssistantResponse(
             answer=response.answer + note,
             citations=response.citations,
             data_result=response.data_result,
             route=response.route,
+            provider_error=provider_error,
         )
 
     def _citation(self, result: SearchResult) -> Citation:

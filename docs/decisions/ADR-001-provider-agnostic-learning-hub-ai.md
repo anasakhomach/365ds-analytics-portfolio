@@ -14,21 +14,25 @@ Key requirements:
 - Support owner-configured live AI for hosted demos.
 - Let local visitors bring a temporary key without saving it.
 - Keep data access constrained to approved DuckDB Gold marts.
-- Allow OpenRouter, LiteLLM, OpenAI, or another OpenAI-compatible gateway.
+- Allow OpenRouter, Groq, LiteLLM, OpenAI, or another OpenAI-compatible gateway.
+- Avoid defaulting Docker to an optional gateway service that may not be running.
 
 ## Decision
 Use a provider-agnostic runtime with four effective modes:
 - Local fallback with TF-IDF retrieval and DuckDB Gold data access.
 - Direct OpenAI-compatible provider calls.
-- Managed gateway mode through OpenRouter.
-- Self-hosted gateway mode through LiteLLM.
+- Managed provider mode through OpenRouter, the default hosted demo path.
+- Direct Groq mode through Groq's OpenAI-compatible endpoint.
+- Self-hosted gateway mode through LiteLLM, used only when explicitly selected and started.
 
 The app resolves keys in this order:
 - session BYOK key when enabled,
 - `LEARNING_HUB_API_KEY`,
-- provider-specific alias such as `OPENROUTER_API_KEY` or `LITELLM_API_KEY`.
+- provider-specific alias such as `OPENROUTER_API_KEY`, `GROQ_API_KEY`, or `LITELLM_API_KEY`.
 
 The LiteLLM path does not treat an upstream `OPENAI_API_KEY` as the gateway bearer key. That key belongs to the proxy's upstream provider config, not to the hub client.
+
+Provider errors are classified so the UI can distinguish rate limits, authentication failures, connection/gateway failures, unavailable models, and generic failures. Live-model failures fall back to local grounded retrieval with a clear next action.
 
 ## Alternatives Considered
 
@@ -49,7 +53,8 @@ The LiteLLM path does not treat an upstream `OPENAI_API_KEY` as the gateway bear
 
 ## Consequences
 - No-key demos remain functional through local retrieval.
-- Hosted demos can use a limited owner gateway key.
+- Hosted demos can use a limited owner OpenRouter key without requiring visitor setup.
+- Visitors can switch provider/model in the Streamlit AI Runtime panel and enter a session-only key when the owner key is rate-limited.
 - LiteLLM can later add budgets, virtual keys, logging, and routing without changing hub code.
 - Changing embedding backend/model requires rebuilding the vector index because embeddings are model-specific.
 - All LLM-generated SQL remains untrusted and must pass the Gold-only validator before execution.

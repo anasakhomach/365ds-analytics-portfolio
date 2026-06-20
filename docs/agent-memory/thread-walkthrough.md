@@ -98,3 +98,11 @@
 - A deterministic `capabilities` route now answers app-contract and SQL-safety questions before retrieval or live model calls.
 - Regression tests cover the two user prompts plus LangGraph parity; local and container test suites now pass with 34 tests.
 - Docker was rebuilt and the running service on `http://localhost:8507` was recreated so the browser app serves the fixed assistant.
+
+## M14 - Learning Hub Owner-Key BYOK Runtime Fix
+
+- The Learning Hub now defaults to direct OpenRouter provider mode instead of an optional LiteLLM gateway hostname, so Docker no longer starts with a missing live endpoint by default.
+- Groq is a first-class provider preset with `GROQ_API_KEY`, Groq's OpenAI-compatible base URL, and common Groq model IDs.
+- The Streamlit AI Runtime panel exposes local/live mode, provider, model/custom model, relevant base URL, key-source status, and session-only BYOK.
+- Live-provider failures are classified into rate limit, auth, connection, invalid model, and other categories; local grounded fallback still answers while the UI explains the right next action.
+- Local verification passes with 40 Learning Hub tests plus compile and index checks.

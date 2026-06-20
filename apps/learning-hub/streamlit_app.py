@@ -10,8 +10,9 @@ from learning_hub.assistant import LearningAssistant, response_table_markdown
 from learning_hub.catalog import catalog_summary, describe_gold_tables, get_project, load_catalog
 from learning_hub.data_tool import GoldQueryTool, UnsafeQueryError
 from learning_hub.indexing import check_index_inputs, load_manifest, load_search_index
-from learning_hub.llm_client import create_llm_client
+from learning_hub.llm_client import classify_provider_error, create_llm_client
 from learning_hub.paths import DEFAULT_INDEX_DIR, display_path
+from learning_hub.provider_catalog import get_provider_preset, model_options, provider_labels
 from learning_hub.settings import load_ai_settings, resolve_ai_runtime
 from learning_hub.sql_planner import plan_and_run_gold_query
 
@@ -40,23 +41,81 @@ def cached_assistant():
 
 
 def runtime_controls():
-    settings = load_ai_settings()
+    env_settings = load_ai_settings()
     byok_key = None
 
     with st.sidebar:
         st.subheader("AI Runtime")
-        if settings.enable_byok:
+        mode_label = st.selectbox(
+            "Mode",
+            ["Live provider", "Local fallback"],
+            index=1 if env_settings.mode == "local" else 0,
+            help="Local fallback uses the indexed sources and DuckDB tool without live model calls.",
+        )
+
+        labels = provider_labels()
+        provider_keys = list(labels)
+        provider = st.selectbox(
+            "Provider",
+            provider_keys,
+            index=provider_keys.index(env_settings.provider) if env_settings.provider in provider_keys else 0,
+            format_func=lambda key: labels[key],
+            disabled=mode_label == "Local fallback",
+        )
+        preset = get_provider_preset(provider)
+
+        options = list(model_options(provider))
+        custom_option = "Custom model..."
+        initial_model = env_settings.chat_model if env_settings.provider == provider else preset.default_model
+        selected_model = initial_model if initial_model in options else custom_option
+        model_choice = st.selectbox(
+            "Model",
+            [*options, custom_option],
+            index=[*options, custom_option].index(selected_model),
+            disabled=mode_label == "Local fallback",
+        )
+        if model_choice == custom_option:
+            chat_model = st.text_input(
+                "Custom model ID",
+                value=initial_model if initial_model not in options else preset.default_model,
+                disabled=mode_label == "Local fallback",
+            ).strip()
+        else:
+            chat_model = model_choice
+
+        base_url = preset.base_url
+        if preset.allow_custom_base_url or provider == "litellm":
+            base_url = st.text_input(
+                "Base URL",
+                value=env_settings.base_url if env_settings.provider == provider else preset.base_url,
+                disabled=mode_label == "Local fallback",
+            ).strip()
+        else:
+            st.caption(f"Endpoint: `{base_url}`")
+
+        if env_settings.enable_byok:
             byok_key = st.text_input(
                 "Session API key",
                 type="password",
-                help="Optional. Kept only in this Streamlit session and never written to disk.",
+                help="Optional fallback. Kept only in this Streamlit session and never written to disk.",
             )
+        live_mode = "local" if mode_label == "Local fallback" else preset.default_mode
+        settings = load_ai_settings(
+            overrides={
+                "LEARNING_HUB_AI_MODE": live_mode,
+                "LEARNING_HUB_PROVIDER": provider,
+                "LEARNING_HUB_BASE_URL": base_url,
+                "LEARNING_HUB_CHAT_MODEL": chat_model,
+            }
+        )
         runtime = resolve_ai_runtime(settings, session_api_key=byok_key)
         st.caption(runtime.safe_label())
         if runtime.live_enabled:
             st.success("Live model synthesis enabled.")
         else:
             st.info(runtime.reason)
+        if provider == "litellm" and runtime.live_enabled:
+            st.caption("LiteLLM requires the Compose gateway profile or another reachable gateway at the configured base URL.")
     return runtime
 
 
@@ -206,6 +265,8 @@ def ai_learning_helper() -> None:
                 st.markdown(table_markdown)
                 answer += "\n\n" + table_markdown
             render_citations(response_shell.citations)
+            if response_shell.provider_error:
+                st.warning(f"{response_shell.provider_error.message} {response_shell.provider_error.action}")
         st.session_state.learning_hub_messages.append({"role": "assistant", "content": answer})
 
 
@@ -260,6 +321,9 @@ def quiz_data_coach() -> None:
                 )
             except (UnsafeQueryError, ValueError, RuntimeError) as exc:
                 st.error(str(exc))
+            except Exception as exc:
+                provider_error = classify_provider_error(exc)
+                st.error(f"{provider_error.message} {provider_error.action}")
 
 
 def architecture_lineage() -> None:

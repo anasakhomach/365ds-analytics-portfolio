@@ -14,7 +14,8 @@
     "Customer Engagement and Tracking User Engagement use multi-block MySQL INSERT parsing; keep this capability for larger SQL dumps.",
     "Tracking User Engagement translates Excel analysis steps into reproducible Python/Gold outputs unless a workbook is explicitly requested.",
     "The Learning Hub is additive and reads approved project artifacts plus Gold marts; it does not restructure the five completed projects.",
-    "Learning Hub live AI is optional: configured providers/gateways require env or session keys, and no-key runs must fall back to local retrieval.",
+    "Learning Hub live AI is optional: default owner-key demo path is OpenRouter provider mode; Groq, LiteLLM, and custom OpenAI-compatible endpoints are selectable; no-key runs must fall back to local retrieval.",
+    "Learning Hub BYOK is session-only and should be prompted as a fallback for owner-key rate limits; never persist visitor keys.",
     "Learning Hub Chroma indexing is optional and must record backend/model/source-hash metadata; TF-IDF remains the default offline backend.",
     "Learning Hub assistant backend is selected by LEARNING_HUB_AGENT_BACKEND=custom|langgraph|auto; LangGraph is optional and must reuse the existing provider runtime and safe Gold-only DuckDB validator."
   ]

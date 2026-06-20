@@ -10,16 +10,19 @@ The hub turns the five completed analytics projects into one portfolio learning 
 - `catalog/projects.yaml` is the source of truth for project paths, reports, dashboards, warehouses, approved Gold tables, and starter questions.
 - The default indexer builds a TF-IDF search index under `.index/` for offline demos and tests.
 - The optional Chroma backend uses OpenAI-compatible embeddings and records backend, embedding model, and source hash metadata in `manifest.json`.
-- Live answers use an OpenAI-compatible client pointed at OpenAI, OpenRouter, LiteLLM, or another compatible gateway.
+- Live answers use an OpenAI-compatible client pointed at OpenRouter by default, Groq, LiteLLM, OpenAI, or another compatible gateway.
+- The Streamlit AI Runtime panel lets a visitor choose local mode, provider, model, optional custom model/base URL, and a session-only key.
 - The assistant backend is selected by `LEARNING_HUB_AGENT_BACKEND`. `custom` is the default stable path; `langgraph` runs an explicit `StateGraph`; `auto` prefers LangGraph when installed and otherwise uses the custom path.
 - Docker Compose runs the hub and an `indexer` one-shot service. The optional `gateway` profile adds a LiteLLM proxy service using `apps/learning-hub/config/litellm_config.yaml`.
 
 ## AI Modes
 
 - `local`: no key required; retrieval-grounded fallback and DuckDB Gold tool only.
-- `provider`: direct OpenAI-compatible endpoint configured by `LEARNING_HUB_BASE_URL`.
-- `gateway`: default owner-key mode for LiteLLM or OpenRouter.
-- BYOK: optional visitor key stored only in Streamlit session state.
+- `provider`: default live path; direct OpenAI-compatible endpoint, with OpenRouter as the default owner-key demo provider.
+- `gateway`: optional LiteLLM path when the Compose gateway profile or another proxy is running.
+- BYOK: optional visitor key stored only in Streamlit session state; it overrides the owner key for the selected provider only.
+
+Provider failures are classified before the UI explains fallback behavior. Rate limits invite BYOK or local mode, authentication errors ask for a fresh key, connection errors point at provider/gateway reachability, and model errors suggest choosing another model. If synthesis fails, the assistant still returns the grounded local retrieval answer instead of silently failing.
 
 ## Assistant Backends
 

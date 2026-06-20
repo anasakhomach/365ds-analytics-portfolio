@@ -30,6 +30,30 @@ class FakeLLMClient:
         yield "answer."
 
 
+class RateLimitedLLMClient:
+    def complete(self, messages: list[dict[str, str]]) -> str:
+        raise FakeProviderError("shared key rate limited", status_code=429)
+
+    def stream(self, messages: list[dict[str, str]]):
+        raise FakeProviderError("shared key rate limited", status_code=429)
+        yield ""
+
+
+class ConnectionFailedLLMClient:
+    def complete(self, messages: list[dict[str, str]]) -> str:
+        raise FakeProviderError("gateway unreachable")
+
+    def stream(self, messages: list[dict[str, str]]):
+        raise FakeProviderError("gateway unreachable")
+        yield ""
+
+
+class FakeProviderError(Exception):
+    def __init__(self, message: str, status_code: int | None = None) -> None:
+        super().__init__(message)
+        self.status_code = status_code
+
+
 def test_assistant_answers_with_citations(tmp_path: Path) -> None:
     build_local_index(tmp_path)
     assistant = LearningAssistant(index=load_local_index(tmp_path))
@@ -250,3 +274,27 @@ def test_assistant_does_not_call_llm_when_context_is_missing(tmp_path: Path) -> 
 
     assert response.route == "rag_no_context"
     assert llm_client.messages == []
+
+
+def test_assistant_classifies_rate_limit_fallback_and_prompts_byok(tmp_path: Path) -> None:
+    build_local_index(tmp_path)
+    assistant = LearningAssistant(index=load_local_index(tmp_path), llm_client=RateLimitedLLMClient())
+
+    response = assistant.answer("Which projects use medallion layers?")
+
+    assert response.route == "rag"
+    assert response.provider_error is not None
+    assert response.provider_error.category == "rate_limit"
+    assert "shared demo key is temporarily busy" in response.answer
+    assert "session API key" in response.answer
+
+
+def test_assistant_classifies_connection_failure_without_byok_prompt(tmp_path: Path) -> None:
+    build_local_index(tmp_path)
+    assistant = LearningAssistant(index=load_local_index(tmp_path), llm_client=ConnectionFailedLLMClient())
+
+    response = assistant.answer("Which projects use medallion layers?")
+
+    assert response.provider_error is not None
+    assert response.provider_error.category == "connection"
+    assert "provider or gateway is unreachable" in response.answer
