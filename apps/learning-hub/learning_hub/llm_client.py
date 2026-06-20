@@ -82,10 +82,19 @@ def classify_provider_error(exc: Exception) -> ProviderErrorInfo:
     status_code = _status_code(exc)
     text = f"{type(exc).__name__} {exc}".lower()
 
-    if status_code == 429 or "rate limit" in text or "rate_limit" in text or "quota" in text:
+    if (
+        status_code in {402, 429}
+        or "rate limit" in text
+        or "rate_limit" in text
+        or "quota" in text
+        or "payment required" in text
+        or "insufficient credit" in text
+        or "free-models-per-day" in text
+        or "free quota" in text
+    ):
         return ProviderErrorInfo(
             category="rate_limit",
-            message="The shared demo key is temporarily busy or rate-limited.",
+            message="The shared demo key is temporarily busy, rate-limited, or out of free quota.",
             action="Continue in local mode, wait a moment, or enter your own session API key.",
         )
     if status_code in {401, 403} or "unauthorized" in text or "invalid api key" in text or "authentication" in text:

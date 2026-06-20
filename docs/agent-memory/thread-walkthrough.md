@@ -106,3 +106,4 @@
 - The Streamlit AI Runtime panel exposes local/live mode, provider, model/custom model, relevant base URL, key-source status, and session-only BYOK.
 - Live-provider failures are classified into rate limit, auth, connection, invalid model, and other categories; local grounded fallback still answers while the UI explains the right next action.
 - Local verification passes with 40 Learning Hub tests plus compile and index checks.
+- Follow-up testing switched the OpenRouter default to `nvidia/nemotron-3-ultra-550b-a55b:free`, added OpenRouter-vs-Groq key-shape warnings, and made simple greetings deterministic so they do not waste live model calls.

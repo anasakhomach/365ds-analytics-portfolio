@@ -12,7 +12,7 @@ from learning_hub.data_tool import GoldQueryTool, UnsafeQueryError
 from learning_hub.indexing import check_index_inputs, load_manifest, load_search_index
 from learning_hub.llm_client import classify_provider_error, create_llm_client
 from learning_hub.paths import DEFAULT_INDEX_DIR, display_path
-from learning_hub.provider_catalog import get_provider_preset, model_options, provider_labels
+from learning_hub.provider_catalog import get_provider_preset, key_provider_warning, model_options, provider_labels
 from learning_hub.settings import load_ai_settings, resolve_ai_runtime
 from learning_hub.sql_planner import plan_and_run_gold_query
 
@@ -109,6 +109,9 @@ def runtime_controls():
             }
         )
         runtime = resolve_ai_runtime(settings, session_api_key=byok_key)
+        warning = key_provider_warning(provider, runtime.api_key)
+        if warning:
+            st.warning(warning)
         st.caption(runtime.safe_label())
         if runtime.live_enabled:
             st.success("Live model synthesis enabled.")

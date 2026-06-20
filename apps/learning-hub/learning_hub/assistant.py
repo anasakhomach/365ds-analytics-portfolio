@@ -472,13 +472,14 @@ class LearningAssistant:
             "help with",
         )
         asks_help = any(phrase in lower for phrase in help_phrases)
+        asks_greeting = lower in {"hi", "hello", "hey", "hi there", "hello there"}
         asks_sql_capability = (
             ("can you" in lower or "do you" in lower)
             and any(term in lower for term in ("sql", "query", "queries", "queies"))
             and any(term in lower for term in ("run", "write", "execute", "create", "help"))
         )
 
-        if not asks_help and not asks_sql_capability:
+        if not asks_help and not asks_greeting and not asks_sql_capability:
             return None
 
         if asks_sql_capability:
@@ -488,6 +489,11 @@ class LearningAssistant:
                 "single `SELECT` or `WITH` queries against catalog-approved `gold.*` tables for a selected project. "
                 "I do not run writes, raw/Bronze/Silver queries, arbitrary database paths, file reads, or destructive SQL. "
                 "For live model SQL planning, use the Quiz And Data page with a configured provider or session key; the generated SQL still passes the same Gold-only validator before DuckDB executes it."
+            )
+        elif asks_greeting:
+            answer = (
+                "Hi. I can help you ask about the projects, architecture, quiz answers, reports, dashboards, "
+                "and approved Gold marts. A good next question is: `Which projects use SQL-first medallion layers?`"
             )
         else:
             scope = "the selected project" if project_slug else "all five projects"

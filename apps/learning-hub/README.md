@@ -55,11 +55,11 @@ No key is required. Answers are extractive and citation-first.
 ```powershell
 LEARNING_HUB_AI_MODE=provider
 LEARNING_HUB_PROVIDER=openrouter
-LEARNING_HUB_CHAT_MODEL=~openai/gpt-latest
+LEARNING_HUB_CHAT_MODEL=nvidia/nemotron-3-ultra-550b-a55b:free
 OPENROUTER_API_KEY=...
 ```
 
-This is the recommended portfolio-demo default. You can also put the owner key in `LEARNING_HUB_API_KEY`.
+This is the recommended portfolio-demo default for free-key testing. You can also put the owner key in `LEARNING_HUB_API_KEY`. Paid or routed OpenRouter models such as `~openai/gpt-latest` remain available through the Streamlit model selector or `LEARNING_HUB_CHAT_MODEL`.
 
 ### Groq
 
@@ -70,7 +70,7 @@ LEARNING_HUB_CHAT_MODEL=llama-3.3-70b-versatile
 GROQ_API_KEY=...
 ```
 
-Groq uses the OpenAI-compatible endpoint `https://api.groq.com/openai/v1`. The Streamlit sidebar also exposes Groq preset models and a custom model field.
+Groq uses the OpenAI-compatible endpoint `https://api.groq.com/openai/v1`. Groq keys usually start with `gsk_`; an OpenRouter key that starts with `sk-or-v1-` should be used with the OpenRouter provider. The Streamlit sidebar also exposes Groq preset models and a custom model field.
 
 ### Custom OpenAI-Compatible Endpoint
 

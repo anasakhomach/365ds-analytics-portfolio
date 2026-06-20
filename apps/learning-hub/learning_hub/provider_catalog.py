@@ -21,8 +21,10 @@ PROVIDER_PRESETS: dict[str, ProviderPreset] = {
         label="OpenRouter",
         default_mode="provider",
         base_url="https://openrouter.ai/api/v1",
-        default_model="~openai/gpt-latest",
+        default_model="nvidia/nemotron-3-ultra-550b-a55b:free",
         model_options=(
+            "nvidia/nemotron-3-ultra-550b-a55b:free",
+            "cohere/north-mini-code:free",
             "~openai/gpt-latest",
             "openai/gpt-4o-mini",
         ),
@@ -76,3 +78,17 @@ def provider_labels() -> dict[str, str]:
 
 def model_options(provider: str) -> tuple[str, ...]:
     return get_provider_preset(provider).model_options
+
+
+def key_provider_warning(provider: str, api_key: str | None) -> str | None:
+    if not api_key:
+        return None
+    key = api_key.strip()
+    if not key:
+        return None
+
+    if provider == "groq" and key.startswith("sk-or-v1-"):
+        return "This looks like an OpenRouter key. Select OpenRouter, or use a Groq key that starts with `gsk_`."
+    if provider == "openrouter" and key.startswith("gsk_"):
+        return "This looks like a Groq key. Select Groq, or use an OpenRouter key that starts with `sk-or-v1-`."
+    return None

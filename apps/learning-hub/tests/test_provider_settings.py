@@ -8,6 +8,7 @@ if str(APP_DIR) not in sys.path:
     sys.path.insert(0, str(APP_DIR))
 
 from learning_hub.settings import load_ai_settings, resolve_ai_runtime
+from learning_hub.provider_catalog import key_provider_warning
 
 
 def test_settings_default_to_openrouter_provider_but_fall_back_without_key() -> None:
@@ -16,7 +17,7 @@ def test_settings_default_to_openrouter_provider_but_fall_back_without_key() -> 
 
     assert settings.mode == "provider"
     assert settings.provider == "openrouter"
-    assert settings.chat_model == "~openai/gpt-latest"
+    assert settings.chat_model == "nvidia/nemotron-3-ultra-550b-a55b:free"
     assert settings.agent_backend == "custom"
     assert runtime.effective_mode == "local"
     assert runtime.live_enabled is False
@@ -91,6 +92,22 @@ def test_runtime_ui_overrides_are_applied_without_mutating_environment_defaults(
     assert runtime.api_key == "visitor-groq-key"
     assert runtime.api_key_source == "session"
     assert "visitor-groq-key" not in runtime.safe_label()
+
+
+def test_key_provider_warning_catches_openrouter_key_sent_to_groq() -> None:
+    warning = key_provider_warning("groq", "sk-or-v1-example")
+
+    assert warning is not None
+    assert "OpenRouter key" in warning
+    assert "Groq" in warning
+
+
+def test_key_provider_warning_catches_groq_key_sent_to_openrouter() -> None:
+    warning = key_provider_warning("openrouter", "gsk_example")
+
+    assert warning is not None
+    assert "Groq key" in warning
+    assert "OpenRouter" in warning
 
 
 def test_byok_session_key_overrides_env_without_mutating_settings() -> None:

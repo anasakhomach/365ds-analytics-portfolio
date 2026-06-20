@@ -54,6 +54,15 @@ class FakeProviderError(Exception):
         self.status_code = status_code
 
 
+class FreeQuotaLLMClient:
+    def complete(self, messages: list[dict[str, str]]) -> str:
+        raise FakeProviderError("Payment required: free quota exhausted", status_code=402)
+
+    def stream(self, messages: list[dict[str, str]]):
+        raise FakeProviderError("Payment required: free quota exhausted", status_code=402)
+        yield ""
+
+
 def test_assistant_answers_with_citations(tmp_path: Path) -> None:
     build_local_index(tmp_path)
     assistant = LearningAssistant(index=load_local_index(tmp_path))
@@ -150,6 +159,19 @@ def test_assistant_answers_help_questions_without_rag_or_llm(tmp_path: Path) -> 
     assert "explain the five analytics projects" in response.answer.lower()
     assert "approved Gold marts" in response.answer
     assert "project instructions" not in response.answer.lower()
+    assert llm_client.messages == []
+
+
+def test_assistant_answers_greetings_without_rag_or_llm(tmp_path: Path) -> None:
+    build_local_index(tmp_path)
+    llm_client = FakeLLMClient()
+    assistant = LearningAssistant(index=load_local_index(tmp_path), llm_client=llm_client)
+
+    response = assistant.answer("hi")
+
+    assert response.route == "capabilities"
+    assert "Hi" in response.answer
+    assert "ask about the projects" in response.answer
     assert llm_client.messages == []
 
 
@@ -287,6 +309,17 @@ def test_assistant_classifies_rate_limit_fallback_and_prompts_byok(tmp_path: Pat
     assert response.provider_error.category == "rate_limit"
     assert "shared demo key is temporarily busy" in response.answer
     assert "session API key" in response.answer
+
+
+def test_assistant_classifies_openrouter_free_quota_as_rate_limit(tmp_path: Path) -> None:
+    build_local_index(tmp_path)
+    assistant = LearningAssistant(index=load_local_index(tmp_path), llm_client=FreeQuotaLLMClient())
+
+    response = assistant.answer("Which projects use medallion layers?")
+
+    assert response.provider_error is not None
+    assert response.provider_error.category == "rate_limit"
+    assert "free quota" in response.answer.lower()
 
 
 def test_assistant_classifies_connection_failure_without_byok_prompt(tmp_path: Path) -> None:
