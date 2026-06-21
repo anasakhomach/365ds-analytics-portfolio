@@ -422,7 +422,10 @@ class LearningAssistant:
         runtime_phrases = (
             "which model are you",
             "what model are you",
+            "what model are",
             "what model is this",
+            "who are you",
+            "what are you",
             "are you a live model",
             "are you live",
             "local version",
@@ -434,7 +437,11 @@ class LearningAssistant:
             "what provider",
             "runtime",
         )
-        if not any(phrase in lower for phrase in runtime_phrases):
+        asks_runtime_model = (
+            ("model" in lower and any(term in lower for term in ("are", "you", "this", "using", "running", "provider")))
+            and not any(term in lower for term in ("r-squared", "r squared", "linear model", "regression model"))
+        )
+        if not any(phrase in lower for phrase in runtime_phrases) and not asks_runtime_model:
             return None
 
         if not self.runtime:

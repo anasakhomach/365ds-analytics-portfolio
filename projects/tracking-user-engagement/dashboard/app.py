@@ -10,7 +10,9 @@ import streamlit as st
 
 
 PROJECT_DIR = Path(__file__).resolve().parents[1]
-DB_PATH = PROJECT_DIR / "warehouse.duckdb"
+LOCAL_DB_PATH = PROJECT_DIR / "warehouse.duckdb"
+CLOUD_DB_PATH = PROJECT_DIR.parents[1] / "apps" / "learning-hub" / "data" / "tracking-user-engagement.duckdb"
+DB_PATH = LOCAL_DB_PATH if LOCAL_DB_PATH.exists() else CLOUD_DB_PATH
 
 st.set_page_config(page_title="Tracking User Engagement", layout="wide")
 st.title("Tracking User Engagement")

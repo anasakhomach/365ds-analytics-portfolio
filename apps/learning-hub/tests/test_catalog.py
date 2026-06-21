@@ -29,6 +29,8 @@ def test_catalog_includes_documents_and_code_for_each_project() -> None:
         assert project.document_paths
         assert project.code_paths
         assert project.readme_path in project.document_paths
+        assert project.source_warehouse_path.name == "warehouse.duckdb"
+        assert project.warehouse_path.exists()
 
 
 def test_catalog_tracks_project_architecture_traits() -> None:

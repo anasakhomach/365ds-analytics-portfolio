@@ -21,10 +21,10 @@ PROVIDER_PRESETS: dict[str, ProviderPreset] = {
         label="OpenRouter",
         default_mode="provider",
         base_url="https://openrouter.ai/api/v1",
-        default_model="nvidia/nemotron-3-ultra-550b-a55b:free",
+        default_model="cohere/north-mini-code:free",
         model_options=(
-            "nvidia/nemotron-3-ultra-550b-a55b:free",
             "cohere/north-mini-code:free",
+            "nvidia/nemotron-3-ultra-550b-a55b:free",
             "~openai/gpt-latest",
             "openai/gpt-4o-mini",
         ),

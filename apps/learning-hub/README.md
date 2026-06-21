@@ -23,6 +23,12 @@ docker compose up learning-hub
 
 The Compose app exposes the hub at `http://localhost:8507`.
 
+## Streamlit Community Cloud
+
+Deploy this repository as one multipage app using `apps/learning-hub/streamlit_app.py`. The app-local `requirements.txt` keeps the cloud build focused, while `data/*.duckdb` contains generated Gold-only snapshots for the five dashboards. Stable routes such as `/real-estate`, `/checkout-flow`, and `/ai-helper` are suitable for project-specific portfolio links.
+
+See `docs/deployment/streamlit-community-cloud.md` for the GitHub, secrets, release, and verification runbook.
+
 ## AI Configuration
 
 The hub is provider-agnostic. It defaults to direct OpenRouter provider mode with an owner-managed key when one is configured, but falls back to local TF-IDF retrieval plus the DuckDB Gold tool when no key is available.
@@ -55,11 +61,11 @@ No key is required. Answers are extractive and citation-first.
 ```powershell
 LEARNING_HUB_AI_MODE=provider
 LEARNING_HUB_PROVIDER=openrouter
-LEARNING_HUB_CHAT_MODEL=nvidia/nemotron-3-ultra-550b-a55b:free
+LEARNING_HUB_CHAT_MODEL=cohere/north-mini-code:free
 OPENROUTER_API_KEY=...
 ```
 
-This is the recommended portfolio-demo default for free-key testing. You can also put the owner key in `LEARNING_HUB_API_KEY`. Paid or routed OpenRouter models such as `~openai/gpt-latest` remain available through the Streamlit model selector or `LEARNING_HUB_CHAT_MODEL`.
+This is the recommended portfolio-demo default for free-key testing because it responds quickly in local Docker smoke tests. You can also put the owner key in `LEARNING_HUB_API_KEY`. Other OpenRouter models such as `nvidia/nemotron-3-ultra-550b-a55b:free` or `~openai/gpt-latest` remain available through the Streamlit model selector or `LEARNING_HUB_CHAT_MODEL`.
 
 ### Groq
 

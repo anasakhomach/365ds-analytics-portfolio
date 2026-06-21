@@ -148,6 +148,28 @@ def test_assistant_answers_runtime_model_questions_without_rag(tmp_path: Path) -
     assert "LinearRegression" not in response.answer
 
 
+def test_assistant_routes_typo_model_question_with_greeting_to_runtime(tmp_path: Path) -> None:
+    build_local_index(tmp_path)
+    runtime = resolve_ai_runtime(
+        load_ai_settings(
+            {
+                "LEARNING_HUB_AI_MODE": "provider",
+                "LEARNING_HUB_PROVIDER": "openrouter",
+                "LEARNING_HUB_CHAT_MODEL": "cohere/north-mini-code:free",
+                "OPENROUTER_API_KEY": "owner-key",
+            }
+        )
+    )
+    assistant = LearningAssistant(index=load_local_index(tmp_path), runtime=runtime)
+
+    response = assistant.answer("hi what model are, i need to know so we can start this session")
+
+    assert response.route == "runtime"
+    assert "cohere/north-mini-code:free" in response.answer
+    assert "openrouter" in response.answer
+    assert "LinearRegression" not in response.answer
+
+
 def test_assistant_answers_help_questions_without_rag_or_llm(tmp_path: Path) -> None:
     build_local_index(tmp_path)
     llm_client = FakeLLMClient()

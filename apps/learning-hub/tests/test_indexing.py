@@ -7,7 +7,14 @@ APP_DIR = Path(__file__).resolve().parents[1]
 if str(APP_DIR) not in sys.path:
     sys.path.insert(0, str(APP_DIR))
 
-from learning_hub.indexing import build_chroma_index, build_local_index, check_index_inputs, load_local_index
+from learning_hub.indexing import (
+    build_chroma_index,
+    build_local_index,
+    check_index_inputs,
+    ensure_local_index,
+    load_local_index,
+    load_manifest,
+)
 from learning_hub.settings import load_ai_settings
 
 
@@ -25,6 +32,29 @@ def test_local_index_retrieves_project_context(tmp_path: Path) -> None:
     assert results
     assert all(result.metadata["project_slug"] for result in results)
     assert any("gold" in result.text.lower() or "medallion" in result.text.lower() for result in results)
+
+
+def test_ensure_local_index_builds_when_missing(tmp_path: Path) -> None:
+    manifest = ensure_local_index(tmp_path)
+
+    assert manifest.source_hash == check_index_inputs().source_hash
+    assert (tmp_path / "local_index.pkl").exists()
+    assert (tmp_path / "manifest.json").exists()
+
+
+def test_ensure_local_index_rebuilds_stale_manifest(tmp_path: Path) -> None:
+    build_local_index(tmp_path)
+    manifest_path = tmp_path / "manifest.json"
+    stale = load_manifest(tmp_path)
+    stale["source_hash"] = "stale"
+    import json
+
+    manifest_path.write_text(json.dumps(stale), encoding="utf-8")
+
+    refreshed = ensure_local_index(tmp_path)
+
+    assert refreshed.source_hash == check_index_inputs().source_hash
+    assert load_manifest(tmp_path)["source_hash"] == refreshed.source_hash
 
 
 class FakeEmbeddingClient:

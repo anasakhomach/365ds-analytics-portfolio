@@ -9,15 +9,17 @@ import streamlit as st
 from learning_hub.assistant import LearningAssistant, response_table_markdown
 from learning_hub.catalog import catalog_summary, describe_gold_tables, get_project, load_catalog
 from learning_hub.data_tool import GoldQueryTool, UnsafeQueryError
-from learning_hub.indexing import check_index_inputs, load_manifest, load_search_index
+from learning_hub.indexing import check_index_inputs, ensure_local_index, load_manifest, load_search_index
 from learning_hub.llm_client import classify_provider_error, create_llm_client
-from learning_hub.paths import DEFAULT_INDEX_DIR, display_path
+from learning_hub.navigation import CORE_PAGES, PROJECT_PAGES, page_source
+from learning_hub.paths import DEFAULT_INDEX_DIR, REPOSITORY_URL, display_path
 from learning_hub.provider_catalog import get_provider_preset, key_provider_warning, model_options, provider_labels
 from learning_hub.settings import load_ai_settings, resolve_ai_runtime
 from learning_hub.sql_planner import plan_and_run_gold_query
 
 
 st.set_page_config(page_title="365DS Learning Hub", layout="wide")
+st.sidebar.link_button("GitHub Repository", REPOSITORY_URL, icon=":material/code:")
 
 
 @st.cache_data(show_spinner=False)
@@ -32,7 +34,10 @@ def cached_summary() -> pd.DataFrame:
 
 @st.cache_resource(show_spinner=False)
 def cached_index():
-    return load_search_index(DEFAULT_INDEX_DIR, settings=load_ai_settings())
+    settings = load_ai_settings()
+    if settings.embedding_backend == "local_tfidf":
+        ensure_local_index(DEFAULT_INDEX_DIR)
+    return load_search_index(DEFAULT_INDEX_DIR, settings=settings)
 
 
 @st.cache_resource(show_spinner=False)
@@ -161,6 +166,11 @@ def portfolio_overview() -> None:
         hide_index=True,
     )
 
+    st.subheader("Explore The Dashboards")
+    dashboard_cols = st.columns(len(PROJECT_PAGES))
+    for column, page in zip(dashboard_cols, PROJECT_PAGES, strict=True):
+        column.page_link(project_page_lookup[page.key], label=page.title, icon=page.icon)
+
     manifest = load_manifest(DEFAULT_INDEX_DIR)
     if manifest:
         st.caption(
@@ -184,6 +194,12 @@ def project_explorer() -> None:
     left, right = st.columns([2, 3])
     with left:
         st.caption("Artifacts")
+        st.page_link(project_page_lookup[slug], label="Open dashboard", icon=":material/dashboard:")
+        st.link_button(
+            "View project source",
+            f"{REPOSITORY_URL}/tree/master/{display_path(project.project_dir)}",
+            icon=":material/code:",
+        )
         st.write(f"README: `{display_path(project.readme_path)}`")
         st.write(f"Dashboard: `{display_path(project.dashboard_path)}`")
         st.write(f"Warehouse: `{display_path(project.warehouse_path)}`")
@@ -356,18 +372,38 @@ The hub treats each course project as an immutable portfolio artifact. It indexe
     )
 
 
+core_renderers = {
+    "overview": portfolio_overview,
+    "projects": project_explorer,
+    "ai-helper": ai_learning_helper,
+    "quiz-data": quiz_data_coach,
+    "lineage": architecture_lineage,
+}
+
+core_pages = {
+    page.key: st.Page(
+        core_renderers[page.key],
+        title=page.title,
+        icon=page.icon,
+        url_path=page.url_path or None,
+        default=page.key == "overview",
+    )
+    for page in CORE_PAGES
+}
+project_pages = [
+    st.Page(page_source(page), title=page.title, icon=page.icon, url_path=page.url_path)
+    for page in PROJECT_PAGES
+]
+project_page_lookup = {
+    definition.key: page
+    for definition, page in zip(PROJECT_PAGES, project_pages, strict=True)
+}
+
 pages = {
-    "Portfolio": [
-        st.Page(portfolio_overview, title="Overview"),
-        st.Page(project_explorer, title="Project Explorer"),
-    ],
-    "Learning": [
-        st.Page(ai_learning_helper, title="AI Helper"),
-        st.Page(quiz_data_coach, title="Quiz And Data"),
-    ],
-    "Architecture": [
-        st.Page(architecture_lineage, title="Lineage"),
-    ],
+    "Portfolio": [core_pages["overview"], core_pages["projects"]],
+    "Projects": project_pages,
+    "Learning": [core_pages["ai-helper"], core_pages["quiz-data"]],
+    "Architecture": [core_pages["lineage"]],
 }
 
 navigation = st.navigation(pages)

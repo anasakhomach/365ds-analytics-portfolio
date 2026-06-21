@@ -17,7 +17,7 @@ def test_settings_default_to_openrouter_provider_but_fall_back_without_key() -> 
 
     assert settings.mode == "provider"
     assert settings.provider == "openrouter"
-    assert settings.chat_model == "nvidia/nemotron-3-ultra-550b-a55b:free"
+    assert settings.chat_model == "cohere/north-mini-code:free"
     assert settings.agent_backend == "custom"
     assert runtime.effective_mode == "local"
     assert runtime.live_enabled is False

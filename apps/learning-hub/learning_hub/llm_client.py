@@ -69,6 +69,7 @@ class OpenAICompatibleClient:
             api_key=self.runtime.api_key,
             base_url=self.runtime.base_url,
             default_headers=headers or None,
+            timeout=45,
         )
 
 

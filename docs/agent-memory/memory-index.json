@@ -1,7 +1,7 @@
 {
   "repo": "C:\\Users\\Nitro\\data-analytics-project\\365ds-demo-projects",
   "focus": "365 Data Science analytics and data engineering projects",
-  "last_updated": "2026-06-20",
+  "last_updated": "2026-06-21",
   "primary_artifact": "docs/agent-memory/current-thread-memory.md",
   "walkthrough": "docs/agent-memory/thread-walkthrough.md",
   "schema": "docs/agent-memory/artifact-schema.md",
@@ -17,6 +17,9 @@
     "Learning Hub live AI is optional: default owner-key demo path is OpenRouter provider mode; Groq, LiteLLM, and custom OpenAI-compatible endpoints are selectable; no-key runs must fall back to local retrieval.",
     "Learning Hub BYOK is session-only and should be prompted as a fallback for owner-key rate limits; never persist visitor keys.",
     "Learning Hub Chroma indexing is optional and must record backend/model/source-hash metadata; TF-IDF remains the default offline backend.",
-    "Learning Hub assistant backend is selected by LEARNING_HUB_AGENT_BACKEND=custom|langgraph|auto; LangGraph is optional and must reuse the existing provider runtime and safe Gold-only DuckDB validator."
+    "Learning Hub assistant backend is selected by LEARNING_HUB_AGENT_BACKEND=custom|langgraph|auto; LangGraph is optional and must reuse the existing provider runtime and safe Gold-only DuckDB validator.",
+    "Portfolio retrospectives live in docs/retrospectives and should stay evidence-backed, secret-free, and explicit about unsupported impact claims.",
+    "Project-level STAR-B retrospectives live beside each analytics project report under projects/*/reports/*_star_b_retrospective.md and should stay as detailed raw proof records; create shorter public versions separately.",
+    "Approved Streamlit Cloud direction: one public multipage app from apps/learning-hub/streamlit_app.py, complete public repo, stable project deep links, and Gold-only cloud runtime snapshots."
   ]
 }

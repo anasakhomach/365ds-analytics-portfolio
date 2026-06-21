@@ -106,4 +106,44 @@
 - The Streamlit AI Runtime panel exposes local/live mode, provider, model/custom model, relevant base URL, key-source status, and session-only BYOK.
 - Live-provider failures are classified into rate limit, auth, connection, invalid model, and other categories; local grounded fallback still answers while the UI explains the right next action.
 - Local verification passes with 40 Learning Hub tests plus compile and index checks.
-- Follow-up testing switched the OpenRouter default to `nvidia/nemotron-3-ultra-550b-a55b:free`, added OpenRouter-vs-Groq key-shape warnings, and made simple greetings deterministic so they do not waste live model calls.
+- Follow-up testing switched the OpenRouter default to `cohere/north-mini-code:free`, added OpenRouter-vs-Groq key-shape warnings, made simple greetings and typo-ish runtime questions deterministic, and verified the Docker app starts live with the owner key from ignored `.env`.
+
+## M15 - Portfolio STAR-B Retrospectives Added
+
+- A portfolio-level STAR-B retrospective package was added under `docs/retrospectives/`.
+- The package treats the whole repo as one delivered portfolio product: five analytics projects, DuckDB medallion pipelines, Streamlit dashboards, reports, quiz support, Learning Hub, AI assistant, provider runtime, safe data tool, LangGraph option, and Docker path.
+- `bug-recovery-ledger.md` turns the documented delivery friction into evidence-backed stories, including Windows ACL issues, uv/cache setup friction, multi-INSERT SQL dump parsing, Docker readiness, assistant routing fixes, provider fallback fixes, and dashboard service recovery.
+- `evidence-ledger.md` maps claims to repo artifacts and explicitly marks unsupported production/user/adoption claims as not claimed.
+- Verification focused on docs quality: diff whitespace checks, secret-pattern scan over the retrospective package, and coverage scans for key architecture and recovery terms.
+
+## M16 - Per-Project STAR-B Retrospectives Added
+
+- Each analytics project now has its own STAR-B retrospective under `projects/*/reports/`.
+- New retrospectives were added for User Journey Analysis, Checkout Flow Optimization, Customer Engagement Analysis, and Tracking User Engagement.
+- Each report follows the same proof pattern: metadata, transparency statement, audience fit, STAR-B stories, evidence ledger, delivered artifacts, stack/trade-offs, metrics, challenges, risks, proof summaries, resume bullets, LinkedIn angle, follow-ups, and final judgment.
+- Verification confirmed five project-level retrospective files, no secret-pattern matches, no non-ASCII characters, and clean `git diff --check`.
+
+## M17 - Project Retrospectives Expanded To Raw Proof Depth
+
+- User feedback rejected the compressed Real Estate rewrite because the original detailed style was stronger.
+- Real Estate was recreated as a fuller raw STAR-B proof document rather than a compact summary.
+- User Journey, Checkout Flow Optimization, Customer Engagement Analysis, and Tracking User Engagement were expanded with detailed proof addenda and raw template completion notes.
+- The project-level reports now preserve more hiring/recruiter/freelance material: delivery contracts, deeper evidence ledgers, trade-offs, timelines, interview answers, public-version notes, claim-safety checks, and one-page summaries.
+- Future public case studies should be shortened from these raw proof reports instead of replacing them.
+
+## M18 - Streamlit Community Cloud Portfolio Design Approved
+
+- The deployment shape is one public multipage Streamlit app, not six independent apps.
+- `apps/learning-hub/streamlit_app.py` remains the entrypoint and gains internal pages for all five dashboards with stable deep links for LinkedIn posts.
+- The complete GitHub repository will be public, including source datasets, instructions, Bronze/Silver/Gold code, dashboards, reports, retrospectives, and the Learning Hub.
+- Release-generated Gold-only DuckDB snapshots are a cloud runtime optimization and safe execution boundary; they do not hide the source or lower-layer implementation.
+- The TF-IDF index will be built automatically when missing or stale instead of committing the current machine-specific pickle.
+- The approved design is recorded at `docs/superpowers/specs/2026-06-21-streamlit-cloud-portfolio-design.md`; implementation planning is the next step.
+
+## M19 - Streamlit Cloud Portfolio Release Implemented
+
+- The Learning Hub now registers all five analytics dashboards through `st.navigation` with stable flat paths for LinkedIn and portfolio links.
+- Each dashboard prefers its full local warehouse and falls back to a release-generated Gold-only snapshot when the ignored local warehouse is unavailable in Community Cloud.
+- The app builds its local TF-IDF index when missing or stale, so deployment does not rely on a machine-specific committed pickle.
+- Root Streamlit configuration, an app-local runtime requirements file, GitHub source links, a portfolio README, and a Community Cloud runbook complete the deployment package.
+- Verification passed with 56 hub tests, explicit compilation, a 104-document/465-chunk index check, a Gold-only schema audit of all five snapshots, and HTTP 200 responses for the root and eight deep links.

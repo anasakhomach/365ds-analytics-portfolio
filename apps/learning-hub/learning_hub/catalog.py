@@ -7,6 +7,7 @@ from typing import Any
 import duckdb
 import yaml
 
+from .cloud_data import resolve_warehouse_path
 from .paths import CATALOG_PATH, REPO_ROOT, display_path, repo_path
 
 
@@ -26,12 +27,16 @@ class Project:
     instruction_path: Path
     readme_path: Path
     dashboard_path: Path
-    warehouse_path: Path
+    source_warehouse_path: Path
     docs: tuple[Path, ...]
     reports: tuple[Path, ...]
     gold_tables: tuple[str, ...]
     starter_questions: tuple[str, ...]
     traits: dict[str, str]
+
+    @property
+    def warehouse_path(self) -> Path:
+        return resolve_warehouse_path(self.slug, self.source_warehouse_path)
 
     @property
     def document_paths(self) -> tuple[Path, ...]:
@@ -70,7 +75,7 @@ def _load_project(raw: dict[str, Any]) -> Project:
         instruction_path=_required_path(raw["instruction_path"], "instruction_path", slug),
         readme_path=_required_path(raw["readme_path"], "readme_path", slug),
         dashboard_path=_required_path(raw["dashboard_path"], "dashboard_path", slug),
-        warehouse_path=_required_path(raw["warehouse_path"], "warehouse_path", slug),
+        source_warehouse_path=_required_path(raw["warehouse_path"], "warehouse_path", slug),
         docs=tuple(repo_path(path) for path in raw.get("docs", [])),
         reports=tuple(repo_path(path) for path in raw.get("reports", [])),
         gold_tables=tuple(raw.get("gold_tables", [])),
@@ -104,7 +109,7 @@ def validate_catalog(projects: list[Project] | None = None) -> list[str]:
             project.instruction_path,
             project.readme_path,
             project.dashboard_path,
-            project.warehouse_path,
+            project.source_warehouse_path,
             *project.docs,
             *project.reports,
         ):

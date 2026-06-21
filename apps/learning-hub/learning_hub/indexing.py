@@ -198,6 +198,23 @@ def check_index_inputs() -> IndexManifest:
     )
 
 
+def ensure_local_index(index_dir: Path = DEFAULT_INDEX_DIR) -> IndexManifest:
+    expected = check_index_inputs()
+    manifest = load_manifest(index_dir)
+    index_exists = (index_dir / LOCAL_INDEX_FILE).exists()
+    is_current = (
+        manifest.get("backend") == "local_tfidf"
+        and manifest.get("source_hash") == expected.source_hash
+        and index_exists
+    )
+    if not is_current:
+        return build_local_index(index_dir)
+    try:
+        return IndexManifest(**manifest)
+    except TypeError:
+        return build_local_index(index_dir)
+
+
 def load_local_index(index_dir: Path = DEFAULT_INDEX_DIR) -> LocalSearchIndex:
     path = index_dir / LOCAL_INDEX_FILE
     if not path.exists():

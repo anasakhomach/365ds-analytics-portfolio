@@ -4,7 +4,7 @@
 
 - Repository: `C:\Users\Nitro\data-analytics-project\365ds-demo-projects`
 - Focus: set up durable agent skills and memory for 365 Data Science analytics projects, with reusable data engineering patterns from neighboring DuckDB warehouse repos.
-- Current objective: upgrade the Learning Hub assistant in batches: first add real conversational memory and runtime self-awareness to the custom assistant, then add an optional LangGraph backend behind the same provider-agnostic and safe DuckDB Gold-tool contracts.
+- Current objective: prepare the complete public repo for one Streamlit Community Cloud multipage deployment with stable project deep links for LinkedIn posts.
 
 ## How To Use This Artifact
 
@@ -33,6 +33,7 @@
 - `source-datasets/`: raw SQL, CSV, Tableau workbook, PDF, and notebook/source assets.
 - `agent-skills/`: repo-local agent skill package.
 - `docs/agent-memory/`: durable memory package for future handoffs.
+- `docs/retrospectives/`: STAR-B portfolio retrospectives, evidence ledger, and bug/recovery ledger.
 - `requirements-analytics.txt`: common Python/Jupyter analytics environment for pandas, plotting, stats, and ML.
 - `requirements-langchain.txt`: pinned LangChain/OpenAI/Chroma environment for the chatbot project.
 - `requirements-learning-hub.txt`: Docker/local dependency set for the portfolio Learning Hub, including Streamlit, DuckDB, sklearn, pytest, and optional modern LangChain/OpenAI/Chroma packages.
@@ -42,6 +43,7 @@
 - `projects/checkout-flow-optimization/`: third implemented 365DS project, with SQL-first DuckDB Bronze/Silver/Gold layers, MySQL dump ingestion, SQL quality checks, generated business report, and a Streamlit dashboard reading Gold marts only.
 - `projects/customer-engagement-analysis/`: fourth implemented 365DS project, with SQL-first DuckDB Bronze/Silver/Gold layers, multi-insert MySQL dump parsing, SQL quality checks, generated business report, and a Streamlit dashboard reading Gold marts only.
 - `projects/tracking-user-engagement/`: fifth implemented 365DS project, with SQL-first DuckDB Bronze/Silver/Gold layers, multi-insert MySQL dump parsing, Python-generated statistical/model Gold marts, generated business report, and a Streamlit dashboard reading Gold marts only.
+- `projects/*/reports/*_star_b_retrospective.md`: project-level STAR-B proof reports for all five analytics projects.
 
 ## Imported Skills
 
@@ -86,7 +88,7 @@ Imported from `C:\Users\Nitro\aicvgen\.tmp\agent-skills\skills`:
 - Learning Hub live AI is optional and provider-agnostic: the configured default is direct OpenRouter provider mode with an owner key from `LEARNING_HUB_API_KEY` or `OPENROUTER_API_KEY`, while Groq, LiteLLM, and custom OpenAI-compatible endpoints remain selectable. Local TF-IDF/DuckDB fallback must keep working whenever no key is available.
 - Learning Hub BYOK is session-only: visitor keys are accepted through Streamlit password input, kept in `st.session_state`, masked in status labels, and never written to repo files, manifests, logs, or docs.
 - Learning Hub BYOK is a fallback/spare path: owner keys are used first, session keys override only for the selected provider, and provider failures are classified as rate limit, auth, connection, invalid model, or other before the UI suggests next actions.
-- Learning Hub OpenRouter default model should stay compatible with free-key demos: `nvidia/nemotron-3-ultra-550b-a55b:free`. Paid/routed models such as `~openai/gpt-latest` can still be selected explicitly.
+- Learning Hub OpenRouter default model should stay compatible with free-key demos: `cohere/north-mini-code:free`, verified live in Docker with the owner key. Other free/paid/routed models can still be selected explicitly.
 - Learning Hub key/provider mismatch guard: OpenRouter keys beginning with `sk-or-v1-` are for the OpenRouter provider, while Groq keys normally begin with `gsk_`.
 - Learning Hub vector retrieval is optional: `local_tfidf` remains the default deterministic backend, while `chroma_openai_compatible` requires a configured embedding API key and records source hashes/model metadata in the index manifest.
 - Learning Hub architecture decision is documented in `docs/decisions/ADR-001-provider-agnostic-learning-hub-ai.md`.
@@ -97,6 +99,10 @@ Imported from `C:\Users\Nitro\aicvgen\.tmp\agent-skills\skills`:
 - Learning Hub Batch 4 behavior: docs, ADR-002, `.env.example`, and Compose now document/expose the hybrid custom/LangGraph backend. Streamlit runtime status includes the configured agent backend alongside provider/model/key source.
 - Learning Hub capability-route fix: assistant self/capability prompts such as "how can you help me" and "can you run or write sql queries" route to deterministic app-contract answers instead of RAG/live-model synthesis. SQL capability answers explicitly state the read-only approved `gold.*` guardrails.
 - Learning Hub owner-key/BYOK runtime fix: Docker and `.env.example` no longer default to an unreachable LiteLLM service; the AI Runtime sidebar exposes mode, provider, model/custom model, base URL when relevant, key source status, and session-only BYOK.
+- Retrospectives in `docs/retrospectives/` are portfolio proof artifacts. Keep them evidence-backed, avoid raw transcript dumps, mark unsupported impact claims as not claimed, and never include API key values.
+- Streamlit Cloud deployment decision: publish the complete repository and deploy one canonical multipage app from `apps/learning-hub/streamlit_app.py`; register all five dashboards as internal pages with stable `url_path` values.
+- Public visibility and runtime execution are separate concerns: all source assets and Bronze/Silver/Gold code remain public, while the deployed dashboards and AI SQL tool execute against release-generated Gold-only DuckDB snapshots.
+- LinkedIn project posts should use stable project deep links under the one Streamlit subdomain; the root URL is the portfolio/Featured link.
 
 ## Verification History
 
@@ -131,14 +137,22 @@ Imported from `C:\Users\Nitro\aicvgen\.tmp\agent-skills\skills`:
 - 2026-06-20: Continued the blocked capability-route follow-up after approvals reset. Docker verification completed: `docker compose build learning-hub` passed, `docker compose run --rm indexer` rebuilt 104 documents and 464 chunks, `docker compose up -d learning-hub` recreated the service, `http://localhost:8507` returned HTTP 200, container-internal tests returned 34 passed, and explicit container smoke tests for "how can you help me" and "can you run or write sql queies" both returned route `capabilities`.
 - 2026-06-20: Implemented the owner-key default plus BYOK fallback runtime contract for the Learning Hub. Local verification: `.\.venv-365ds\Scripts\python.exe -m pytest apps\learning-hub\tests -q` returned 40 passed; explicit `py_compile` passed for the touched hub modules; `build_index.py --check` reported 104 documents and 464 chunks. Docker verification: quiet Compose config checks passed for default and gateway profiles; `docker compose build learning-hub` passed; `docker compose run --rm indexer` rebuilt 104 documents and 464 chunks; `docker compose up -d learning-hub` recreated the service; `http://localhost:8507` returned HTTP 200; container-internal tests returned 40 passed; container runtime smoke resolved to OpenRouter/provider mode with local fallback when no owner key is configured.
 - 2026-06-20: Follow-up fix for free OpenRouter testing: changed the OpenRouter default model to `nvidia/nemotron-3-ultra-550b-a55b:free`, added provider-key mismatch warnings, routed simple greetings deterministically instead of through RAG/live synthesis, and classified HTTP 402/free-quota style provider failures as rate-limit/quota fallback. Verification: local hub tests returned 44 passed; py_compile passed for touched hub modules; `build_index.py --check` reported 104 documents and 464 chunks; quiet Compose config checks passed; Docker build/indexer/up passed; `http://localhost:8507` returned HTTP 200; container tests returned 44 passed; container runtime smoke resolved to `provider openrouter nvidia/nemotron-3-ultra-550b-a55b:free False None` without an owner key.
+- 2026-06-20: Final owner-key live-start fix: local ignored `.env` now supplies the OpenRouter owner key at runtime; Docker Compose injects it via existing environment-variable references, not by hardcoding secrets in `docker-compose.yml`. Changed the default model to `cohere/north-mini-code:free` after `nvidia/nemotron-3-ultra-550b-a55b:free` timed out in a live smoke. Added a 45-second OpenAI client timeout and broadened runtime/self-awareness routing for prompts like `hi what model are...`. Verification: local hub tests returned 45 passed; py_compile passed; index check reported 104 documents and 464 chunks; quiet Compose configs passed; Docker build/indexer/up passed; `http://localhost:8507` returned 200; container tests returned 45 passed; runtime metadata resolved to `provider openrouter cohere/north-mini-code:free True OPENROUTER_API_KEY`; live app-client smoke returned `OK`.
+- 2026-06-20: Added `docs/retrospectives/` with a master portfolio STAR-B retrospective, analytics/dashboard appendix, Learning Hub AI appendix, bug/recovery ledger, and evidence ledger. Verification: `git diff --check` passed; secret-pattern scan over `docs/retrospectives` returned no matches; coverage scan confirmed the retrospective package mentions the expected bug/recovery and architecture keywords.
+- 2026-06-21: Reworked the project-level retrospectives after user feedback that the earlier Real Estate draft was more detailed and useful than the compressed rewrite. Recreated Real Estate as a full raw proof report and expanded User Journey, Checkout Flow Optimization, Customer Engagement, and Tracking User Engagement with detailed delivery contracts, audience fit, evidence, trade-offs, timelines, interview answers, public-version notes, claim-safety checks, and one-page versions. Verification: project retrospective count is five; `git diff --check` passed; secret-pattern scan over `projects/*/reports/*_star_b_retrospective.md` returned no matches; non-ASCII scan returned no matches.
+- 2026-06-21: Approved the Streamlit Community Cloud design in `docs/superpowers/specs/2026-06-21-streamlit-cloud-portfolio-design.md`. Decision: one public multipage app, complete public GitHub repo, stable dashboard deep links, release-generated Gold-only cloud snapshots, automatic local TF-IDF index build, Streamlit secrets, and one app-specific requirements file. Design diff and secret-pattern checks passed.
+- 2026-06-21: Implemented the Streamlit Community Cloud portfolio release shape. Added stable multipage routes for all five dashboards and hub tools, app-local cloud requirements, root Streamlit theme/config, configurable GitHub source links, automatic local index bootstrap, and five release-generated Gold-only DuckDB snapshots. Verification: 56 Learning Hub tests passed; explicit Python compilation passed; index check reported 104 documents and 465 chunks; all snapshots contained only their catalog-approved Gold tables; the root plus eight deep links returned HTTP 200 from the exact cloud entrypoint; real API-key-shape scan found no exposed keys outside ignored `.env`.
 
 - 2026-06-17: Added projects/real-estate-market-analysis/reports/real_estate_market_analysis_star_b_retrospective.md as an internal STAR-B proof report for the Real Estate project; no pipeline rerun or source data changes were performed.
 
 ## Next Steps
 
-- Review the Docker-served Learning Hub at `http://localhost:8507`.
-- To demo LangGraph explicitly, set `LEARNING_HUB_AGENT_BACKEND=langgraph` before starting the app or container.
-- Stop the Docker service when done with `docker compose down`.
+- Review `docs/retrospectives/365ds-portfolio-star-b-retrospective.md` and decide whether to turn it into a public case study, LinkedIn post, or shorter resume proof artifact.
+- Review each `projects/*/reports/*_star_b_retrospective.md` project retrospective and decide which should be shortened for public portfolio pages.
+- Add screenshots or a short demo video before publishing the retrospective externally.
+- Preserve the detailed raw project retrospectives as internal proof sources; create shorter public versions separately instead of compressing these files.
+- Publish the public GitHub repository and deploy `apps/learning-hub/streamlit_app.py` through the `anasakhomach` Streamlit Community Cloud workspace.
+- Add the owner OpenRouter key through Streamlit secrets only, then verify every stable deep link in a private browser session.
 
 ## Deferred Missions
 
@@ -146,4 +160,4 @@ Imported from `C:\Users\Nitro\aicvgen\.tmp\agent-skills\skills`:
 
 ## Recent Delta
 
-- 2026-06-19: Added repo-local agent skill package and starter memory artifacts; expanded it with adapted analytics SQL, dashboard storytelling, and data quality contract skills from the requested GitHub sources; fixed hidden `.agents`/`.codex` usability via junctions; added starter Python requirements files for analytics and LangChain work; committed the baseline and DuckDB/Streamlit stack; completed Real Estate, User Journey, Checkout Flow Optimization, Customer Engagement, and Tracking User Engagement as DuckDB/Streamlit projects; added a Dockerized Learning Hub layer across all five projects.
+- 2026-06-21: Implemented and locally verified the one-app Streamlit Cloud portfolio contract, including five internal dashboards, stable deep links, cloud Gold snapshots, automatic TF-IDF bootstrap, source links, deployment docs, and app-specific dependencies. GitHub publication and Community Cloud deployment are the remaining release steps.
