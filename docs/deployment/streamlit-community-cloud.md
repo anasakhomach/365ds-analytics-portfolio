@@ -25,7 +25,7 @@ Rebuild snapshots before a release:
 1. Open `https://share.streamlit.io/user/anasakhomach`.
 2. Select **Create app** and choose the GitHub repository.
 3. Set branch `master` and file `apps/learning-hub/streamlit_app.py`.
-4. Request the subdomain `365ds-analytics-portfolio` if available.
+4. Use the deployed subdomain `365ds-analytics-portfolio-apps`.
 5. Choose Python 3.13 in advanced settings.
 6. Add secrets using the template below, with a fresh owner key.
 
@@ -44,7 +44,7 @@ Never commit the secrets block or paste the real key into repository files.
 
 ## Stable Links
 
-After deployment, use these paths in project-specific posts:
+The live root is `https://365ds-analytics-portfolio-apps.streamlit.app/`. Use these paths in project-specific posts:
 
 - `/real-estate`
 - `/user-journey`

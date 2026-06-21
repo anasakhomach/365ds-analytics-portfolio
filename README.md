@@ -6,6 +6,8 @@ Five analytics case studies and one AI learning experience, delivered as a singl
 
 The public app uses stable pages so each LinkedIn post can link directly to the relevant project while visitors can still move through the complete portfolio from one sidebar.
 
+[Open the live 365DS Analytics Portfolio](https://365ds-analytics-portfolio-apps.streamlit.app/)
+
 | Experience | Public path |
 | --- | --- |
 | Portfolio overview | `/` |

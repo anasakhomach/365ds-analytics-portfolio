@@ -19,24 +19,28 @@ st.title("Tracking User Engagement")
 
 
 @st.cache_data(show_spinner=False)
-def query(sql: str) -> pd.DataFrame:
-    if not DB_PATH.exists():
-        raise FileNotFoundError(DB_PATH)
-    with duckdb.connect(str(DB_PATH), read_only=True) as con:
+def query(database_path: str, sql: str) -> pd.DataFrame:
+    path = Path(database_path)
+    if not path.exists():
+        raise FileNotFoundError(path)
+    with duckdb.connect(database_path, read_only=True) as con:
         return con.execute(sql).fetchdf()
 
 
 try:
-    kpis = query("SELECT * FROM gold.mart_summary_kpis").iloc[0]
-    segments = query("SELECT * FROM gold.mart_q2_engagement_segments")
-    no_outliers = query("SELECT * FROM gold.mart_q2_engagement_no_outliers")
-    statistics = query("SELECT * FROM gold.mart_q2_segment_statistics ORDER BY engagement_year, paid")
-    hypothesis = query("SELECT * FROM gold.mart_hypothesis_tests ORDER BY student_plan")
-    certificates = query("SELECT * FROM gold.mart_certificates_minutes ORDER BY student_id")
-    correlation = query("SELECT * FROM gold.mart_correlation").iloc[0]
-    regression = query("SELECT * FROM gold.mart_regression").iloc[0]
-    probability = query("SELECT * FROM gold.mart_watch_probability").iloc[0]
-    quiz = query("SELECT * FROM gold.mart_quiz_answers ORDER BY question_number")
+    kpis = query(str(DB_PATH), "SELECT * FROM gold.mart_summary_kpis").iloc[0]
+    segments = query(str(DB_PATH), "SELECT * FROM gold.mart_q2_engagement_segments")
+    no_outliers = query(str(DB_PATH), "SELECT * FROM gold.mart_q2_engagement_no_outliers")
+    statistics = query(
+        str(DB_PATH),
+        "SELECT * FROM gold.mart_q2_segment_statistics ORDER BY engagement_year, paid",
+    )
+    hypothesis = query(str(DB_PATH), "SELECT * FROM gold.mart_hypothesis_tests ORDER BY student_plan")
+    certificates = query(str(DB_PATH), "SELECT * FROM gold.mart_certificates_minutes ORDER BY student_id")
+    correlation = query(str(DB_PATH), "SELECT * FROM gold.mart_correlation").iloc[0]
+    regression = query(str(DB_PATH), "SELECT * FROM gold.mart_regression").iloc[0]
+    probability = query(str(DB_PATH), "SELECT * FROM gold.mart_watch_probability").iloc[0]
+    quiz = query(str(DB_PATH), "SELECT * FROM gold.mart_quiz_answers ORDER BY question_number")
 except FileNotFoundError:
     st.error("Gold marts not found. Run the project pipeline first.")
     st.code(r".\.venv-365ds\Scripts\python.exe projects\tracking-user-engagement\scripts\pipeline.py")

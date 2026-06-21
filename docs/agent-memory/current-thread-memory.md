@@ -103,6 +103,7 @@ Imported from `C:\Users\Nitro\aicvgen\.tmp\agent-skills\skills`:
 - Streamlit Cloud deployment decision: publish the complete repository and deploy one canonical multipage app from `apps/learning-hub/streamlit_app.py`; register all five dashboards as internal pages with stable `url_path` values.
 - Public visibility and runtime execution are separate concerns: all source assets and Bronze/Silver/Gold code remain public, while the deployed dashboards and AI SQL tool execute against release-generated Gold-only DuckDB snapshots.
 - LinkedIn project posts should use stable project deep links under the one Streamlit subdomain; the root URL is the portfolio/Featured link.
+- Streamlit multipage dashboard cache contract: every cached DuckDB query must include the resolved warehouse path as an explicit hashed function argument. SQL text alone is not a safe cache key because separate project pages issue identical Gold queries.
 
 ## Verification History
 
@@ -142,6 +143,7 @@ Imported from `C:\Users\Nitro\aicvgen\.tmp\agent-skills\skills`:
 - 2026-06-21: Reworked the project-level retrospectives after user feedback that the earlier Real Estate draft was more detailed and useful than the compressed rewrite. Recreated Real Estate as a full raw proof report and expanded User Journey, Checkout Flow Optimization, Customer Engagement, and Tracking User Engagement with detailed delivery contracts, audience fit, evidence, trade-offs, timelines, interview answers, public-version notes, claim-safety checks, and one-page versions. Verification: project retrospective count is five; `git diff --check` passed; secret-pattern scan over `projects/*/reports/*_star_b_retrospective.md` returned no matches; non-ASCII scan returned no matches.
 - 2026-06-21: Approved the Streamlit Community Cloud design in `docs/superpowers/specs/2026-06-21-streamlit-cloud-portfolio-design.md`. Decision: one public multipage app, complete public GitHub repo, stable dashboard deep links, release-generated Gold-only cloud snapshots, automatic local TF-IDF index build, Streamlit secrets, and one app-specific requirements file. Design diff and secret-pattern checks passed.
 - 2026-06-21: Implemented the Streamlit Community Cloud portfolio release shape. Added stable multipage routes for all five dashboards and hub tools, app-local cloud requirements, root Streamlit theme/config, configurable GitHub source links, automatic local index bootstrap, and five release-generated Gold-only DuckDB snapshots. Verification: 56 Learning Hub tests passed; explicit Python compilation passed; index check reported 104 documents and 465 chunks; all snapshots contained only their catalog-approved Gold tables; the root plus eight deep links returned HTTP 200 from the exact cloud entrypoint; real API-key-shape scan found no exposed keys outside ignored `.env`.
+- 2026-06-21: Diagnosed the first Community Cloud multipage runtime incident from exported logs. Real Estate loaded, then User Journey, Checkout, Customer Engagement, and Tracking Engagement reused its cached `SELECT * FROM gold.mart_summary_kpis` DataFrame because the shared query shape keyed only on SQL. A Streamlit AppTest sequence reproduced all four cloud `KeyError`s. The five dashboards now include their warehouse path in each cached query key; the regression changed from four failures to one passing five-page sequence.
 
 - 2026-06-17: Added projects/real-estate-market-analysis/reports/real_estate_market_analysis_star_b_retrospective.md as an internal STAR-B proof report for the Real Estate project; no pipeline rerun or source data changes were performed.
 
@@ -152,7 +154,7 @@ Imported from `C:\Users\Nitro\aicvgen\.tmp\agent-skills\skills`:
 - Add screenshots or a short demo video before publishing the retrospective externally.
 - Preserve the detailed raw project retrospectives as internal proof sources; create shorter public versions separately instead of compressing these files.
 - Publish the public GitHub repository and deploy `apps/learning-hub/streamlit_app.py` through the `anasakhomach` Streamlit Community Cloud workspace.
-- Add the owner OpenRouter key through Streamlit secrets only, then verify every stable deep link in a private browser session.
+- Verify every stable deep link in a private browser session after the cache-isolation fix reaches Community Cloud.
 
 ## Deferred Missions
 
@@ -160,4 +162,4 @@ Imported from `C:\Users\Nitro\aicvgen\.tmp\agent-skills\skills`:
 
 ## Recent Delta
 
-- 2026-06-21: Implemented and locally verified the one-app Streamlit Cloud portfolio contract, including five internal dashboards, stable deep links, cloud Gold snapshots, automatic TF-IDF bootstrap, source links, deployment docs, and app-specific dependencies. GitHub publication and Community Cloud deployment are the remaining release steps.
+- 2026-06-21: The public repository and Community Cloud app are live at `https://365ds-analytics-portfolio-apps.streamlit.app/`. The first cloud incident exposed cross-project `st.cache_data` collisions; the fix and five-page regression test are implemented locally and awaiting the release push/Cloud rebuild.

@@ -18,22 +18,23 @@ st.title("Real Estate Market Analysis")
 
 
 @st.cache_data(show_spinner=False)
-def query(sql: str) -> pd.DataFrame:
-    if not DB_PATH.exists():
-        raise FileNotFoundError(DB_PATH)
-    with duckdb.connect(str(DB_PATH), read_only=True) as con:
+def query(database_path: str, sql: str) -> pd.DataFrame:
+    path = Path(database_path)
+    if not path.exists():
+        raise FileNotFoundError(path)
+    with duckdb.connect(database_path, read_only=True) as con:
         return con.execute(sql).fetchdf()
 
 
 try:
-    kpis = query("SELECT * FROM gold.mart_summary_kpis").iloc[0]
-    transactions = query("SELECT * FROM gold.mart_property_transactions")
-    monthly_revenue = query("SELECT * FROM gold.mart_monthly_revenue")
-    building = query("SELECT * FROM gold.mart_building_performance")
-    state = query("SELECT * FROM gold.mart_state_distribution")
-    country = query("SELECT * FROM gold.mart_country_performance")
-    age = query("SELECT * FROM gold.mart_age_intervals")
-    yearly = query("SELECT * FROM gold.mart_yearly_sales_by_building")
+    kpis = query(str(DB_PATH), "SELECT * FROM gold.mart_summary_kpis").iloc[0]
+    transactions = query(str(DB_PATH), "SELECT * FROM gold.mart_property_transactions")
+    monthly_revenue = query(str(DB_PATH), "SELECT * FROM gold.mart_monthly_revenue")
+    building = query(str(DB_PATH), "SELECT * FROM gold.mart_building_performance")
+    state = query(str(DB_PATH), "SELECT * FROM gold.mart_state_distribution")
+    country = query(str(DB_PATH), "SELECT * FROM gold.mart_country_performance")
+    age = query(str(DB_PATH), "SELECT * FROM gold.mart_age_intervals")
+    yearly = query(str(DB_PATH), "SELECT * FROM gold.mart_yearly_sales_by_building")
 except FileNotFoundError:
     st.error("Gold marts not found. Run the project pipeline first.")
     st.code(r".\.venv-365ds\Scripts\python.exe projects\real-estate-market-analysis\scripts\pipeline.py")

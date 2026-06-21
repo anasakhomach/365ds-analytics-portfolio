@@ -147,3 +147,11 @@
 - The app builds its local TF-IDF index when missing or stale, so deployment does not rely on a machine-specific committed pickle.
 - Root Streamlit configuration, an app-local runtime requirements file, GitHub source links, a portfolio README, and a Community Cloud runbook complete the deployment package.
 - Verification passed with 56 hub tests, explicit compilation, a 104-document/465-chunk index check, a Gold-only schema audit of all five snapshots, and HTTP 200 responses for the root and eight deep links.
+
+## M20 - Community Cloud Cache Collision Diagnosed
+
+- The public app launched at `https://365ds-analytics-portfolio-apps.streamlit.app/`, but four project pages failed after Real Estate was visited.
+- Exported Cloud logs showed project-specific KPI `KeyError`s even though local and cloud snapshot schemas matched.
+- A five-dashboard Streamlit AppTest sequence reproduced the exact order-dependent failure locally and isolated the cause: identical cached query functions keyed on SQL but not warehouse path.
+- All five dashboards now pass the resolved DuckDB path as an explicit cached argument, preventing cross-project DataFrame reuse while preserving read-only Gold access.
+- The regression test moved from four failing project pages to one passing five-page sequence.

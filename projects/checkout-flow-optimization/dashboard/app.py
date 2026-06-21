@@ -20,20 +20,21 @@ st.title("Checkout Flow Optimization")
 
 
 @st.cache_data(show_spinner=False)
-def query(sql: str) -> pd.DataFrame:
-    if not DB_PATH.exists():
-        raise FileNotFoundError(DB_PATH)
-    with duckdb.connect(str(DB_PATH), read_only=True) as con:
+def query(database_path: str, sql: str) -> pd.DataFrame:
+    path = Path(database_path)
+    if not path.exists():
+        raise FileNotFoundError(path)
+    with duckdb.connect(database_path, read_only=True) as con:
         return con.execute(sql).fetchdf()
 
 
 try:
-    kpis = query("SELECT * FROM gold.mart_summary_kpis").iloc[0]
-    monthly = query("SELECT * FROM gold.mart_monthly_checkout ORDER BY checkout_month")
-    errors = query("SELECT * FROM gold.mart_error_rankings ORDER BY rank")
-    error_device = query("SELECT * FROM gold.mart_checkout_errors")
-    device = query("SELECT * FROM gold.mart_device_distribution")
-    quiz = query("SELECT * FROM gold.mart_quiz_answers ORDER BY question_number")
+    kpis = query(str(DB_PATH), "SELECT * FROM gold.mart_summary_kpis").iloc[0]
+    monthly = query(str(DB_PATH), "SELECT * FROM gold.mart_monthly_checkout ORDER BY checkout_month")
+    errors = query(str(DB_PATH), "SELECT * FROM gold.mart_error_rankings ORDER BY rank")
+    error_device = query(str(DB_PATH), "SELECT * FROM gold.mart_checkout_errors")
+    device = query(str(DB_PATH), "SELECT * FROM gold.mart_device_distribution")
+    quiz = query(str(DB_PATH), "SELECT * FROM gold.mart_quiz_answers ORDER BY question_number")
 except FileNotFoundError:
     st.error("Gold marts not found. Run the project pipeline first.")
     st.code(r".\.venv-365ds\Scripts\python.exe projects\checkout-flow-optimization\scripts\pipeline.py")

@@ -20,21 +20,25 @@ st.title("Customer Engagement Analysis")
 
 
 @st.cache_data(show_spinner=False)
-def query(sql: str) -> pd.DataFrame:
-    if not DB_PATH.exists():
-        raise FileNotFoundError(DB_PATH)
-    with duckdb.connect(str(DB_PATH), read_only=True) as con:
+def query(database_path: str, sql: str) -> pd.DataFrame:
+    path = Path(database_path)
+    if not path.exists():
+        raise FileNotFoundError(path)
+    with duckdb.connect(database_path, read_only=True) as con:
         return con.execute(sql).fetchdf()
 
 
 try:
-    kpis = query("SELECT * FROM gold.mart_summary_kpis").iloc[0]
-    monthly = query("SELECT * FROM gold.mart_monthly_engagement ORDER BY watched_month, user_type")
-    registrations = query("SELECT * FROM gold.mart_monthly_registrations ORDER BY registration_month, user_type")
-    country_registered = query("SELECT * FROM gold.mart_country_registered")
-    country_minutes = query("SELECT * FROM gold.mart_country_minutes")
-    courses = query("SELECT * FROM gold.mart_course_performance ORDER BY course_rank")
-    quiz = query("SELECT * FROM gold.mart_quiz_answers ORDER BY question_number")
+    kpis = query(str(DB_PATH), "SELECT * FROM gold.mart_summary_kpis").iloc[0]
+    monthly = query(str(DB_PATH), "SELECT * FROM gold.mart_monthly_engagement ORDER BY watched_month, user_type")
+    registrations = query(
+        str(DB_PATH),
+        "SELECT * FROM gold.mart_monthly_registrations ORDER BY registration_month, user_type",
+    )
+    country_registered = query(str(DB_PATH), "SELECT * FROM gold.mart_country_registered")
+    country_minutes = query(str(DB_PATH), "SELECT * FROM gold.mart_country_minutes")
+    courses = query(str(DB_PATH), "SELECT * FROM gold.mart_course_performance ORDER BY course_rank")
+    quiz = query(str(DB_PATH), "SELECT * FROM gold.mart_quiz_answers ORDER BY question_number")
 except FileNotFoundError:
     st.error("Gold marts not found. Run the project pipeline first.")
     st.code(r".\.venv-365ds\Scripts\python.exe projects\customer-engagement-analysis\scripts\pipeline.py")
