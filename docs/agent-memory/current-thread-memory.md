@@ -105,6 +105,7 @@ Imported from `C:\Users\Nitro\aicvgen\.tmp\agent-skills\skills`:
 - Public visibility and runtime execution are separate concerns: all source assets and Bronze/Silver/Gold code remain public, while the deployed dashboards and AI SQL tool execute against release-generated Gold-only DuckDB snapshots.
 - LinkedIn project posts should use stable project deep links under the one Streamlit subdomain; the root URL is the portfolio/Featured link.
 - Streamlit multipage dashboard cache contract: every cached DuckDB query must include the resolved warehouse path as an explicit hashed function argument. SQL text alone is not a safe cache key because separate project pages issue identical Gold queries.
+- Streamlit index bootstrap contract: when `local_tfidf` is configured, the portfolio overview must call the cached index loader before reading `manifest.json`. Community Cloud runtime storage starts without the ignored `.index/`, so a status-only manifest read incorrectly reports that the index was never built.
 
 ## Verification History
 
@@ -146,6 +147,7 @@ Imported from `C:\Users\Nitro\aicvgen\.tmp\agent-skills\skills`:
 - 2026-06-21: Implemented the Streamlit Community Cloud portfolio release shape. Added stable multipage routes for all five dashboards and hub tools, app-local cloud requirements, root Streamlit theme/config, configurable GitHub source links, automatic local index bootstrap, and five release-generated Gold-only DuckDB snapshots. Verification: 56 Learning Hub tests passed; explicit Python compilation passed; index check reported 104 documents and 465 chunks; all snapshots contained only their catalog-approved Gold tables; the root plus eight deep links returned HTTP 200 from the exact cloud entrypoint; real API-key-shape scan found no exposed keys outside ignored `.env`.
 - 2026-06-21: Diagnosed the first Community Cloud multipage runtime incident from exported logs. Real Estate loaded, then User Journey, Checkout, Customer Engagement, and Tracking Engagement reused its cached `SELECT * FROM gold.mart_summary_kpis` DataFrame because the shared query shape keyed only on SQL. A Streamlit AppTest sequence reproduced all four cloud `KeyError`s. The five dashboards now include their warehouse path in each cached query key; the regression changed from four failures to one passing five-page sequence.
 - 2026-06-21: Released cache isolation commit `d6ce2b1` to `master`; Community Cloud rebuilt successfully. Public route probes returned HTTP 200 and the user confirmed all four previously failing dashboards now render. The Cloud owner runtime was then switched through encrypted Streamlit Secrets to Groq with `llama-3.3-70b-versatile`, and the AI Runtime panel confirmed live synthesis.
+- 2026-06-21: Fixed the Community Cloud overview warning `Search index has not been built yet.` The landing page previously read the manifest without invoking `cached_index()`, while auto-bootstrap happened only after opening AI Helper. Added an AppTest with an empty temporary index directory; it failed before the fix and now proves the overview creates `manifest.json` without the warning. Full Learning Hub verification returned 58 passed; compile, index-input, diff, and secret scans passed.
 
 - 2026-06-17: Added projects/real-estate-market-analysis/reports/real_estate_market_analysis_star_b_retrospective.md as an internal STAR-B proof report for the Real Estate project; no pipeline rerun or source data changes were performed.
 
@@ -155,7 +157,6 @@ Imported from `C:\Users\Nitro\aicvgen\.tmp\agent-skills\skills`:
 - Review each `projects/*/reports/*_star_b_retrospective.md` project retrospective and decide which should be shortened for public portfolio pages.
 - Add screenshots or a short demo video before publishing the retrospective externally.
 - Preserve the detailed raw project retrospectives as internal proof sources; create shorter public versions separately instead of compressing these files.
-- Publish the public GitHub repository and deploy `apps/learning-hub/streamlit_app.py` through the `anasakhomach` Streamlit Community Cloud workspace.
 - Revoke the Groq key pasted into chat and replace it in Streamlit Secrets with a fresh key before treating the app as production-ready.
 
 ## Deferred Missions
@@ -164,4 +165,4 @@ Imported from `C:\Users\Nitro\aicvgen\.tmp\agent-skills\skills`:
 
 ## Recent Delta
 
-- 2026-06-21: The public repository and Community Cloud app are live at `https://365ds-analytics-portfolio-apps.streamlit.app/`. Cache-isolation commit `d6ce2b1` is deployed, all five dashboards are confirmed working, and Cloud live synthesis uses Groq `llama-3.3-70b-versatile` through encrypted app secrets. Remaining security action: rotate the key exposed in chat.
+- 2026-06-21: The public repository and Community Cloud app are live at `https://365ds-analytics-portfolio-apps.streamlit.app/`. All dashboards are confirmed working, Cloud live synthesis uses Groq `llama-3.3-70b-versatile`, and the overview now bootstraps its missing local TF-IDF index. Remaining security action: rotate the key exposed in chat.

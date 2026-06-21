@@ -163,3 +163,11 @@
 - The live AI runtime was switched from the no-key fallback/OpenRouter test path to Groq through Streamlit's encrypted Secrets panel.
 - Production runtime metadata now reports provider `groq`, model `llama-3.3-70b-versatile`, and live synthesis enabled; TF-IDF remains the no-key fallback.
 - The Groq key posted in chat must be rotated and replaced in Streamlit Secrets before the app is treated as production-ready.
+
+## M22 - Landing-Page Index Bootstrap Fixed
+
+- The live portfolio overview displayed `Search index has not been built yet.` after a Community Cloud restart.
+- Investigation found that `cached_index()` already rebuilt missing or stale TF-IDF artifacts, but only AI Helper invoked it; the overview merely read the absent manifest.
+- An AppTest now launches the overview with an empty temporary index directory and requires `manifest.json` to be created without the warning.
+- The overview invokes the cached local index loader before rendering index status, so first load builds once and AI Helper reuses the same in-memory object.
+- Verification passed with 58 Learning Hub tests plus compile, index-input, diff, and secret scans.

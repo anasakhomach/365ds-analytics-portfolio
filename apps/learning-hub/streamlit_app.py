@@ -153,6 +153,8 @@ def render_citations(citations) -> None:
 
 def portfolio_overview() -> None:
     st.title("365DS Portfolio Learning Hub")
+    if load_ai_settings().embedding_backend == "local_tfidf":
+        cached_index()
     summary = cached_summary()
     kpi_cols = st.columns(4)
     kpi_cols[0].metric("Projects", len(summary))
