@@ -155,3 +155,11 @@
 - A five-dashboard Streamlit AppTest sequence reproduced the exact order-dependent failure locally and isolated the cause: identical cached query functions keyed on SQL but not warehouse path.
 - All five dashboards now pass the resolved DuckDB path as an explicit cached argument, preventing cross-project DataFrame reuse while preserving read-only Gold access.
 - The regression test moved from four failing project pages to one passing five-page sequence.
+
+## M21 - Community Cloud Release Recovered And Groq Enabled
+
+- Cache-isolation commit `d6ce2b1` reached `master` and triggered the Community Cloud rebuild.
+- Public route probes returned HTTP 200, and the user confirmed User Journey, Checkout Flow, Customer Engagement, and Tracking Engagement all render again.
+- The live AI runtime was switched from the no-key fallback/OpenRouter test path to Groq through Streamlit's encrypted Secrets panel.
+- Production runtime metadata now reports provider `groq`, model `llama-3.3-70b-versatile`, and live synthesis enabled; TF-IDF remains the no-key fallback.
+- The Groq key posted in chat must be rotated and replaced in Streamlit Secrets before the app is treated as production-ready.

@@ -86,6 +86,7 @@ Imported from `C:\Users\Nitro\aicvgen\.tmp\agent-skills\skills`:
 - The Learning Hub is additive. It does not restructure the five completed projects; it indexes their docs/code/reports and reads approved `gold.*` marts only.
 - Docker Compose is verified for the Learning Hub when Docker Desktop's Linux engine is running.
 - Learning Hub live AI is optional and provider-agnostic: the configured default is direct OpenRouter provider mode with an owner key from `LEARNING_HUB_API_KEY` or `OPENROUTER_API_KEY`, while Groq, LiteLLM, and custom OpenAI-compatible endpoints remain selectable. Local TF-IDF/DuckDB fallback must keep working whenever no key is available.
+- Community Cloud production override: the live portfolio uses Groq at `https://api.groq.com/openai/v1` with `llama-3.3-70b-versatile`; its owner key exists only in Streamlit App Settings -> Secrets. The repository default remains provider-agnostic/OpenRouter-compatible for local fallback and testing.
 - Learning Hub BYOK is session-only: visitor keys are accepted through Streamlit password input, kept in `st.session_state`, masked in status labels, and never written to repo files, manifests, logs, or docs.
 - Learning Hub BYOK is a fallback/spare path: owner keys are used first, session keys override only for the selected provider, and provider failures are classified as rate limit, auth, connection, invalid model, or other before the UI suggests next actions.
 - Learning Hub OpenRouter default model should stay compatible with free-key demos: `cohere/north-mini-code:free`, verified live in Docker with the owner key. Other free/paid/routed models can still be selected explicitly.
@@ -144,6 +145,7 @@ Imported from `C:\Users\Nitro\aicvgen\.tmp\agent-skills\skills`:
 - 2026-06-21: Approved the Streamlit Community Cloud design in `docs/superpowers/specs/2026-06-21-streamlit-cloud-portfolio-design.md`. Decision: one public multipage app, complete public GitHub repo, stable dashboard deep links, release-generated Gold-only cloud snapshots, automatic local TF-IDF index build, Streamlit secrets, and one app-specific requirements file. Design diff and secret-pattern checks passed.
 - 2026-06-21: Implemented the Streamlit Community Cloud portfolio release shape. Added stable multipage routes for all five dashboards and hub tools, app-local cloud requirements, root Streamlit theme/config, configurable GitHub source links, automatic local index bootstrap, and five release-generated Gold-only DuckDB snapshots. Verification: 56 Learning Hub tests passed; explicit Python compilation passed; index check reported 104 documents and 465 chunks; all snapshots contained only their catalog-approved Gold tables; the root plus eight deep links returned HTTP 200 from the exact cloud entrypoint; real API-key-shape scan found no exposed keys outside ignored `.env`.
 - 2026-06-21: Diagnosed the first Community Cloud multipage runtime incident from exported logs. Real Estate loaded, then User Journey, Checkout, Customer Engagement, and Tracking Engagement reused its cached `SELECT * FROM gold.mart_summary_kpis` DataFrame because the shared query shape keyed only on SQL. A Streamlit AppTest sequence reproduced all four cloud `KeyError`s. The five dashboards now include their warehouse path in each cached query key; the regression changed from four failures to one passing five-page sequence.
+- 2026-06-21: Released cache isolation commit `d6ce2b1` to `master`; Community Cloud rebuilt successfully. Public route probes returned HTTP 200 and the user confirmed all four previously failing dashboards now render. The Cloud owner runtime was then switched through encrypted Streamlit Secrets to Groq with `llama-3.3-70b-versatile`, and the AI Runtime panel confirmed live synthesis.
 
 - 2026-06-17: Added projects/real-estate-market-analysis/reports/real_estate_market_analysis_star_b_retrospective.md as an internal STAR-B proof report for the Real Estate project; no pipeline rerun or source data changes were performed.
 
@@ -154,7 +156,7 @@ Imported from `C:\Users\Nitro\aicvgen\.tmp\agent-skills\skills`:
 - Add screenshots or a short demo video before publishing the retrospective externally.
 - Preserve the detailed raw project retrospectives as internal proof sources; create shorter public versions separately instead of compressing these files.
 - Publish the public GitHub repository and deploy `apps/learning-hub/streamlit_app.py` through the `anasakhomach` Streamlit Community Cloud workspace.
-- Verify every stable deep link in a private browser session after the cache-isolation fix reaches Community Cloud.
+- Revoke the Groq key pasted into chat and replace it in Streamlit Secrets with a fresh key before treating the app as production-ready.
 
 ## Deferred Missions
 
@@ -162,4 +164,4 @@ Imported from `C:\Users\Nitro\aicvgen\.tmp\agent-skills\skills`:
 
 ## Recent Delta
 
-- 2026-06-21: The public repository and Community Cloud app are live at `https://365ds-analytics-portfolio-apps.streamlit.app/`. The first cloud incident exposed cross-project `st.cache_data` collisions; the fix and five-page regression test are implemented locally and awaiting the release push/Cloud rebuild.
+- 2026-06-21: The public repository and Community Cloud app are live at `https://365ds-analytics-portfolio-apps.streamlit.app/`. Cache-isolation commit `d6ce2b1` is deployed, all five dashboards are confirmed working, and Cloud live synthesis uses Groq `llama-3.3-70b-versatile` through encrypted app secrets. Remaining security action: rotate the key exposed in chat.
